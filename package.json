@@ -1,0 +1,57 @@
+{
+    "name": "vscode-3dviewer",
+    "displayName": "vscode-3dviewer",
+    "description": "Preview 3D meshes in VSCode",
+    "version": "0.1.0",
+    "publisher": "slevesque",
+    "engines": {
+        "vscode": "^1.18.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "3dviewer.previewMesh"
+    ],
+    "main": "./out/extension",
+    "contributes": {
+        "languages": [
+            {
+                "id": "3dformat",
+                "extensions": [
+                    ".3ds",
+                    ".dae",
+                    ".fbx",
+                    ".obj",
+                    ".stl"
+                ]
+            }
+        ],
+        "commands": [
+            {
+                "command": "3dviewer.previewMesh",
+                "title": "Preview Mesh"
+            }
+        ],
+        "menus": {
+            "explorer/context": [
+                {
+                    "command": "3dviewer.previewMesh",
+                    "when": "resourceLangId == 3dformat"
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install"
+    },
+    "devDependencies": {
+        "@types/mocha": "^2.2.42",
+        "@types/node": "^7.0.43",
+        "typescript": "^2.6.1",
+        "vscode": "^1.1.6"
+    }
+}
