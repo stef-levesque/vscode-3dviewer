@@ -55,6 +55,7 @@ function init() {
     var gridHelper = new THREE.GridHelper(28, 28, 0x303030, 0x303030);
     gridHelper.position.set(0, - 0.04, 0);
     scene.add(gridHelper);
+    rendering.add(gridHelper, 'visible').name('show grid');
 
     // model
     var onProgress = function (xhr) {
