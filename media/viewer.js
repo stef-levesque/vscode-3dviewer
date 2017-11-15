@@ -96,9 +96,15 @@ function init() {
         var object = file.scene ? file.scene : file;  
         object.mixer = new THREE.AnimationMixer(object);
         mixers.push(object.mixer);
-        if (file.animations && file.animations[0]) {
+        if (file.animations && file.animations.length) {
             var action = object.mixer.clipAction(file.animations[0]);
             action.play();
+            let animation = gui.addFolder('Animation');
+
+            for (let i=0; i<file.animations.length; ++i) {
+                animation.add( object.mixer.clipAction(file.animations[i]), 'play').name('play animation ' + i);
+                animation.add( object.mixer.clipAction(file.animations[i]), 'stop').name('stop animation ' + i);
+            }
         }
         object.name = 'MainObject';
         scene.add(object);
