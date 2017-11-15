@@ -42,7 +42,7 @@ export default class MeshPreviewContentProvider implements TextDocumentContentPr
 
     private getScripts(): string {
         const scripts = [
-            this.getMediaPath('three.js'), 
+            this.getMediaPath('three.min.js'), 
             this.getMediaPath('inflate.min.js'),
             this.getMediaPath('OrbitControls.js'),
             this.getMediaPath('ColladaLoader.js'),
