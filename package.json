@@ -11,7 +11,7 @@
         "Other"
     ],
     "activationEvents": [
-        "3dviewer.previewMesh"
+        "onCommand:3dviewer.previewMesh"
     ],
     "main": "./out/extension",
     "contributes": {
