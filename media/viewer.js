@@ -99,7 +99,14 @@ function init() {
             var action = object.mixer.clipAction(file.animations[0]);
             action.play();
         }
+        object.name = 'MainObject';
         scene.add(object);
+
+        var bbox = new THREE.BoxHelper(object);
+        bbox.name = 'MainObjectBBox';
+        scene.add(bbox);
+        rendering.add(bbox, 'visible').name('show bounding box');
+
     }, onProgress, onError);
 
     renderer = new THREE.WebGLRenderer();
