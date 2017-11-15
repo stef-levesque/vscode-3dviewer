@@ -8,7 +8,10 @@ var clock = new THREE.Clock();
 var mixers = [];
 
 var config = {
-    wireframe: false
+    wireframe: false,
+
+    background: "#8f8f8f",
+    onBackgroundChange: (color) => {scene.background = new THREE.Color(color); }
 }
 
 init();
@@ -18,14 +21,16 @@ function init() {
     container = document.createElement('div');
     document.body.appendChild(container);
 
-    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
-
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x8f8f8f);
-
     // user interface
     gui = new dat.GUI();
     rendering = gui.addFolder('rendering');
+
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
+
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(config.background);
+
+    rendering.addColor(config, 'background').onChange(config.onBackgroundChange);
 
     rendering.add(config, 'wireframe').onChange( (wireframe) => {
         /** @type {THREE.Object3D} */
