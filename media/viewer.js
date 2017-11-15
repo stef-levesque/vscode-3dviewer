@@ -1,10 +1,15 @@
 
 var container, controls;
-var camera, scene, renderer, light;
+var camera, renderer, light;
+var scene, gui, rendering;
 
 var clock = new THREE.Clock();
 
 var mixers = [];
+
+var config = {
+    wireframe: false
+}
 
 init();
 
@@ -17,6 +22,29 @@ function init() {
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x8f8f8f);
+
+    // user interface
+    gui = new dat.GUI();
+    rendering = gui.addFolder('rendering');
+
+    rendering.add(config, 'wireframe').onChange( (wireframe) => {
+        /** @type {THREE.Object3D} */
+        let object = scene.getObjectByName('MainObject');
+        if (object) {
+            object.traverse((child) => {
+                if (child['material']) {
+                    let material = child['material'];
+                    if (Array.isArray(material)) {
+                        for (let m of material) {
+                            m.wireframe = wireframe;
+                        }
+                    } else  {
+                        material.wireframe = wireframe;
+                    }
+                }
+            });
+        }
+    });
 
     // grid
     var gridHelper = new THREE.GridHelper(28, 28, 0x303030, 0x303030);
