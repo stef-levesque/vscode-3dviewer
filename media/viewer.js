@@ -57,6 +57,18 @@ function init() {
     scene.add(gridHelper);
     rendering.add(gridHelper, 'visible').name('show grid');
 
+    // renderer
+    renderer = new THREE.WebGLRenderer();
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    container.appendChild(renderer.domElement);
+
+    // controls, camera
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 12, 0);
+    camera.position.set(2, 18, 28);
+    controls.update();
+
     // model
     var onProgress = function (xhr) {
 
@@ -114,18 +126,15 @@ function init() {
         scene.add(bbox);
         rendering.add(bbox, 'visible').name('show bounding box');
 
+        bbox.geometry.computeBoundingSphere();
+        let center = bbox.geometry.boundingSphere.center;
+        let offset = bbox.geometry.boundingSphere.radius * 3;
+        controls.target = center;
+        camera.position.set(center.x + offset, center.y + offset, center.z + offset);
+        camera.updateProjectionMatrix();
+        controls.update();
+
     }, onProgress, onError);
-
-    renderer = new THREE.WebGLRenderer();
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    container.appendChild(renderer.domElement);
-
-    // controls, camera
-    controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.target.set(0, 12, 0);
-    camera.position.set(2, 18, 28);
-    controls.update();
 
     window.addEventListener('resize', onWindowResize, false);
 
