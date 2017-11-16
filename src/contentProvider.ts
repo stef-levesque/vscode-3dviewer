@@ -81,6 +81,7 @@ export default class MeshPreviewContentProvider implements TextDocumentContentPr
                     <meta charset="utf-8">
                     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
                     ${this.getSettings(uri)}
+                    <base href="${this.getMediaPath('/')}">
                     <style>
                         body {
                             font-family: Monospace;

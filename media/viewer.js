@@ -178,6 +178,72 @@ function init() {
     light.position.set(0, 1, 0);
     scene.add(light);
 
+    // materials
+    let materials = generateMaterials();
+    var current_material = 0;
+
+    let effectController = {
+        material: "shiny",
+        speed: 1.0,
+        numBlobs: 10,
+        resolution: 28,
+        isolation: 80,
+        floor: true,
+        wallx: false,
+        wallz: false,
+        hue: 0.0,
+        saturation: 0.8,
+        lightness: 0.1,
+        lhue: 0.04,
+        lsaturation: 1.0,
+        llightness: 0.5,
+        lx: 0.5,
+        ly: 0.5,
+        lz: 1.0,
+        postprocessing: false,
+        updateColor: function() {
+            if (scene.overrideMaterial) {
+                let color = new THREE.Color();
+                color.setHSL(this.hue, this.saturation, this.lightness);
+                scene.overrideMaterial.color = color;
+            }
+        }
+    };
+    
+    let colorFolder = gui.addFolder("Material color");
+    var m_h = colorFolder.add(effectController, "hue", 0.0, 1.0).step(0.025);
+    var m_s = colorFolder.add(effectController, "saturation", 0.0, 1.0).step(0.025);
+    var m_l = colorFolder.add(effectController, "lightness", 0.0, 1.0).step(0.025);
+
+    m_h.onChange(() => effectController.updateColor());
+    m_s.onChange(() => effectController.updateColor());
+    m_l.onChange(() => effectController.updateColor());
+
+    var createHandler = function( id ) {
+        return function() {
+            if (current_material != 0) {
+                var mat_old = materials[ current_material ];
+                mat_old.h = m_h.getValue();
+                mat_old.s = m_s.getValue();
+                mat_old.l = m_l.getValue();
+            }
+            current_material = id;
+            var mat = materials[ id ];
+            scene.overrideMaterial = mat.m;
+            m_h.setValue( mat.h );
+            m_s.setValue( mat.s );
+            m_l.setValue( mat.l );
+            // effect.enableUvs = (current_material === "textured") ? true : false;
+            // effect.enableColors = (current_material === "colors") ? true : false;
+        };
+    };
+
+    let matFolder = gui.addFolder( "Materials" );
+    for ( var m in materials ) {
+        effectController[ m ] = createHandler( m );
+        matFolder.add( effectController, m ).name( m );
+    }
+
     animate();
 
 }
@@ -207,4 +273,140 @@ function animate() {
 
 function render() {
     renderer.render(scene, camera);
+}               scene.overrideMaterial.color = color;
+            }
+        }
+    };
+    
+    let colorFolder = gui.addFolder("Material color");
+    var m_h = colorFolder.add(effectController, "hue", 0.0, 1.0).step(0.025);
+    var m_s = colorFolder.add(effectController, "saturation", 0.0, 1.0).step(0.025);
+    var m_l = colorFolder.add(effectController, "lightness", 0.0, 1.0).step(0.025);
+
+    m_h.onChange(() => effectController.updateColor());
+    m_s.onChange(() => effectController.updateColor());
+    m_l.onChange(() => effectController.updateColor());
+
+    var createHandler = function( id ) {
+        return function() {
+            if (current_material != 0) {
+                var mat_old = materials[ current_material ];
+                mat_old.h = m_h.getValue();
+                mat_old.s = m_s.getValue();
+                mat_old.l = m_l.getValue();
+            }
+            current_material = id;
+            var mat = materials[ id ];
+            scene.overrideMaterial = mat.m;
+            m_h.setValue( mat.h );
+            m_s.setValue( mat.s );
+            m_l.setValue( mat.l );
+            // effect.enableUvs = (current_material === "textured") ? true : false;
+            // effect.enableColors = (current_material === "colors") ? true : false;
+        };
+    };
+
+    let matFolder = gui.addFolder( "Materials" );
+    for ( var m in materials ) {
+        effectController[ m ] = createHandler( m );
+        matFolder.add( effectController, m ).name( m );
+    }
+
+    animate();
+
+}
+
+function onWindowResize() {
+
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+}
+
+//
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    if (mixers.length > 0) {
+        for (var i = 0; i < mixers.length; i++) {
+            mixers[i].update(clock.getDelta());
+        }
+    }
+
+    render();
+}
+
+function render() {
+    renderer.render(scene, camera);
+}
+
+function generateMaterials() {
+    // environment map
+    var path = "textures/cube/pisa/";
+    var format = '.png';
+    var urls = [
+        path + 'px' + format, path + 'nx' + format,
+        path + 'py' + format, path + 'ny' + format,
+        path + 'pz' + format, path + 'nz' + format
+    ];
+    var cubeTextureLoader = new THREE.CubeTextureLoader();
+    var reflectionCube = cubeTextureLoader.load( urls );
+    reflectionCube.format = THREE.RGBFormat;
+    var refractionCube = cubeTextureLoader.load( urls );
+    reflectionCube.format = THREE.RGBFormat;
+    refractionCube.mapping = THREE.CubeRefractionMapping;
+
+    var texture = new THREE.TextureLoader().load( "textures/UV_Grid_Sm.jpg" );
+    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    var materials = {
+        "default" : 
+        {
+            m: null,
+            h: 0, s: 0, l: 1
+        },
+        "chrome" :
+        {
+            m: new THREE.MeshLambertMaterial( { color: 0xffffff, envMap: reflectionCube } ),
+            h: 0, s: 0, l: 1
+        },
+        "liquid" :
+        {
+            m: new THREE.MeshLambertMaterial( { color: 0xffffff, envMap: refractionCube, refractionRatio: 0.85 } ),
+            h: 0, s: 0, l: 1
+        },
+        "shiny"  :
+        {
+            m: new THREE.MeshStandardMaterial( { color: 0x550000, envMap: reflectionCube, roughness: 0.1, metalness: 1.0 } ),
+            h: 0, s: 0.8, l: 0.2
+        },
+        "matte" :
+        {
+            m: new THREE.MeshPhongMaterial( { color: 0x000000, specular: 0x111111, shininess: 1 } ),
+            h: 0, s: 0, l: 1
+        },
+        "flat" :
+        {
+            m: new THREE.MeshPhongMaterial( { color: 0x000000, specular: 0x111111, shininess: 1, flatShading: true } ),
+            h: 0, s: 0, l: 1
+        },
+        "textured" :
+        {
+            m: new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, shininess: 1, map: texture } ),
+            h: 0, s: 0, l: 1
+        },
+        "colors" :
+        {
+            m: new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0xffffff, shininess: 2, vertexColors: THREE.VertexColors } ),
+            h: 0, s: 0, l: 1
+        },
+        "plastic" :
+        {
+            m: new THREE.MeshPhongMaterial( { color: 0x000000, specular: 0x888888, shininess: 250 } ),
+            h: 0.6, s: 0.8, l: 0.1
+        },
+    }
+    return materials;
 }
