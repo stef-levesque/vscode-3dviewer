@@ -7,13 +7,6 @@ var clock = new THREE.Clock();
 
 var mixers = [];
 
-var config = {
-    wireframe: false,
-
-    background: "#8f8f8f",
-    onBackgroundChange: (color) => {scene.background = new THREE.Color(color); }
-}
-
 init();
 
 function init() {
@@ -21,18 +14,23 @@ function init() {
     container = document.createElement('div');
     document.body.appendChild(container);
 
+    // get user settings
+    var settings = JSON.parse(document.getElementById('vscode-3dviewer-data').getAttribute('data-settings'));
+
     // user interface
     gui = new dat.GUI();
-    rendering = gui.addFolder('rendering');
+    rendering = gui.addFolder('Rendering');
 
-    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, settings.near, settings.far);
+    rendering.add(camera, 'near').onChange(() => camera.updateProjectionMatrix());
+    rendering.add(camera, 'far').onChange(() => camera.updateProjectionMatrix());
 
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(config.background);
+    scene.background = new THREE.Color(settings.background);
 
-    rendering.addColor(config, 'background').onChange(config.onBackgroundChange);
+    rendering.addColor(settings, 'background').onChange((color) => { scene.background = new THREE.Color(color) });
 
-    rendering.add(config, 'wireframe').onChange( (wireframe) => {
+    let setWireframe = (wireframe) => {
         /** @type {THREE.Object3D} */
         let object = scene.getObjectByName('MainObject');
         if (object) {
@@ -49,11 +47,18 @@ function init() {
                 }
             });
         }
-    });
+    };
+
+    if (settings.wireframe) {
+        setWireframe(settings.wireframe);
+    }
+
+    rendering.add(settings, 'wireframe').onChange( setWireframe );
 
     // grid
     var gridHelper = new THREE.GridHelper(28, 28, 0x303030, 0x303030);
     gridHelper.position.set(0, - 0.04, 0);
+    gridHelper.visible = settings.grid;
     scene.add(gridHelper);
     rendering.add(gridHelper, 'visible').name('show grid');
 
@@ -85,7 +90,8 @@ function init() {
         console.log(xhr.toString())
     };
 
-    var ext = meshToLoad.split('.').pop();
+    var fileToLoad = settings.fileToLoad;
+    var ext = fileToLoad.split('.').pop();
 
     var loader;
     switch (ext) {
@@ -104,7 +110,7 @@ function init() {
             break;
     }
 
-    loader.load(meshToLoad, function (file) {
+    loader.load(fileToLoad, function (file) {
         var object = file.scene ? file.scene : file;  
         object.mixer = new THREE.AnimationMixer(object);
         mixers.push(object.mixer);
@@ -123,6 +129,7 @@ function init() {
 
         var bbox = new THREE.BoxHelper(object);
         bbox.name = 'MainObjectBBox';
+        bbox.visible = settings.boundingBox;
         scene.add(bbox);
         rendering.add(bbox, 'visible').name('show bounding box');
 

@@ -40,6 +40,20 @@ export default class MeshPreviewContentProvider implements TextDocumentContentPr
 		return Uri.file(this.context.asAbsolutePath(path.join('media', mediaFile))).toString();
     }
 
+    private getSettings(uri: Uri): string {
+        let config = workspace.getConfiguration('3dviewer');
+        let initialData = {
+            fileToLoad: uri.with({scheme: 'file'}).toString(),
+            wireframe: config.get('wireframe', false),
+            background: config.get('background', '#8f8f8f'),
+            boundingBox: config.get('boundingBox', false),
+            grid: config.get('grid', true),
+            near: config.get('near', 0.1),
+            far: config.get('far', 1000000)
+        }
+        return `<meta id="vscode-3dviewer-data" data-settings="${JSON.stringify(initialData).replace(/"/g, '&quot;')}">`
+    }
+
     private getScripts(): string {
         const scripts = [
             this.getMediaPath('three.min.js'), 
@@ -66,6 +80,7 @@ export default class MeshPreviewContentProvider implements TextDocumentContentPr
                     <title>three.js webgl - FBX loader</title>
                     <meta charset="utf-8">
                     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+                    ${this.getSettings(uri)}
                     <style>
                         body {
                             font-family: Monospace;
@@ -78,9 +93,6 @@ export default class MeshPreviewContentProvider implements TextDocumentContentPr
                     </style>
                 </head>
                 <body>
-                    <script>
-                        var meshToLoad = '${uri.with({scheme: 'file'}).toString()}';
-                    </script>
                     ${this.getScripts()}
                 </body>
             </html>
