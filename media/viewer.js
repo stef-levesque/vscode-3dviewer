@@ -127,6 +127,27 @@ function init() {
         object.name = 'MainObject';
         scene.add(object);
 
+        /** 
+         * @param {THREE.Object3D} baseObject 
+         * @param {dat.GUI} baseFolder
+         * @param {string} property
+         * */
+        let recursive = (baseObject, baseFolder, property) => {
+            if (baseObject) {
+                let newFolder = baseFolder.addFolder(baseObject.name ? baseObject.name : '{noname}');
+                if (baseObject.children && baseObject.children.length) {
+                    newFolder.add(baseObject, property);
+                    baseObject.children.filter(c => c.children && c.children.length).forEach(c => recursive(c, newFolder, property));
+                    baseObject.children.filter(c => !(c.children && c.children.length)).forEach(c => recursive(c, newFolder, property));
+                } else {
+                    newFolder.add(baseObject, property);
+                }
+            }
+        }
+
+        let modelFolder = gui.addFolder('Model');
+        recursive(object, modelFolder, 'visible');
+
         var bbox = new THREE.BoxHelper(object);
         bbox.name = 'MainObjectBBox';
         bbox.visible = settings.boundingBox;
