@@ -154,13 +154,17 @@ function init() {
         scene.add(bbox);
         rendering.add(bbox, 'visible').name('show bounding box');
 
-        bbox.geometry.computeBoundingSphere();
-        let center = bbox.geometry.boundingSphere.center;
-        let offset = bbox.geometry.boundingSphere.radius * 3;
-        controls.target = center;
-        camera.position.set(center.x + offset, center.y + offset, center.z + offset);
-        camera.updateProjectionMatrix();
-        controls.update();
+        if (bbox.geometry) {
+            bbox.geometry.computeBoundingSphere();
+            if (bbox.geometry.boundingSphere) {
+                let center = bbox.geometry.boundingSphere.center;
+                let offset = bbox.geometry.boundingSphere.radius * 3;
+                controls.target = center;
+                camera.position.set(center.x + offset, center.y + offset, center.z + offset);
+                camera.updateProjectionMatrix();
+                controls.update();
+            }
+        }
 
     }, onProgress, onError);
 
