@@ -324,6 +324,8 @@ function generateMaterials() {
     reflectionCube.format = THREE.RGBFormat;
     refractionCube.mapping = THREE.CubeRefractionMapping;
 
+    editorScene.background = reflectionCube;
+
     var texture = new THREE.TextureLoader().load( "textures/UV_Grid_Sm.jpg" );
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     var materials = {
