@@ -64,6 +64,7 @@ export default class MeshPreviewContentProvider implements TextDocumentContentPr
             this.getMediaPath('FBXLoader.js'),
             this.getMediaPath('TDSLoader.js'),
             this.getMediaPath('OBJLoader.js'),
+            this.getMediaPath('STLLoader.js'),
             this.getMediaPath('viewer.js')
         ];
         return scripts

@@ -111,6 +111,9 @@ function init() {
         case 'fbx':
             loader = new THREE.FBXLoader();
             break;
+        case 'stl':
+            loader = new THREE.STLLoader();
+            break;
         case 'obj':
         default:
             loader = new THREE.OBJLoader();
@@ -118,7 +121,11 @@ function init() {
     }
 
     loader.load(fileToLoad, function (file) {
-        var object = file.scene ? file.scene : file;  
+        window['file'] = file;
+        
+        var object = file.scene ? file.scene : 
+                     file.isGeometry || file.isBufferGeometry ? new THREE.Mesh(file) : 
+                     file;
         object.mixer = new THREE.AnimationMixer(object);
         mixers.push(object.mixer);
         if (file.animations && file.animations.length) {
