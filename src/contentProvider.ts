@@ -48,6 +48,7 @@ export default class MeshPreviewContentProvider implements TextDocumentContentPr
             background: config.get('background', '#8f8f8f'),
             boundingBox: config.get('boundingBox', false),
             grid: config.get('grid', true),
+            gridSize: config.get('gridSize', 32),
             near: config.get('near', 0.1),
             far: config.get('far', 1000000)
         }

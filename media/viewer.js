@@ -61,11 +61,16 @@ function init() {
     rendering.add(settings, 'wireframe').onChange( setWireframe );
 
     // grid
-    var gridHelper = new THREE.GridHelper(28, 28, 0x303030, 0x303030);
-    gridHelper.position.set(0, - 0.04, 0);
-    gridHelper.visible = settings.grid;
-    scene.add(gridHelper);
-    rendering.add(gridHelper, 'visible').name('show grid');
+    let createGrid = () => {
+        var gridHelper = new THREE.GridHelper(settings.gridSize, settings.gridSize, 0xc0c0c0, 0xc0c0c0);
+        gridHelper.name = 'grid';
+        gridHelper.position.set(0, - 0.04, 0);
+        gridHelper.visible = settings.grid;
+        editorScene.add(gridHelper);
+    }
+    createGrid();
+    rendering.add(settings, 'grid').name('show grid').onChange((value) => { editorScene.getObjectByName('grid').visible = value; });
+    rendering.add(settings, 'gridSize').min(1).max(100).step(1).onChange((value) => {editorScene.remove(editorScene.getObjectByName('grid')); createGrid();});
 
     // renderer
     renderer = new THREE.WebGLRenderer();
