@@ -216,24 +216,12 @@ function init() {
     var current_material = 0;
 
     let effectController = {
-        material: "shiny",
-        speed: 1.0,
-        numBlobs: 10,
-        resolution: 28,
-        isolation: 80,
-        floor: true,
-        wallx: false,
-        wallz: false,
         hue: 0.0,
         saturation: 0.8,
         lightness: 0.1,
         lhue: 0.04,
         lsaturation: 1.0,
         llightness: 0.5,
-        lx: 0.5,
-        ly: 0.5,
-        lz: 1.0,
-        postprocessing: false,
         updateColor: function() {
             if (mainScene.overrideMaterial) {
                 let color = new THREE.Color();
