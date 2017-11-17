@@ -1,7 +1,7 @@
 
 var container, controls;
 var camera, renderer, light;
-var scene, gui, rendering;
+var editorScene, mainScene, gui, rendering;
 
 var clock = new THREE.Clock();
 
@@ -25,14 +25,19 @@ function init() {
     rendering.add(camera, 'near').onChange(() => camera.updateProjectionMatrix());
     rendering.add(camera, 'far').onChange(() => camera.updateProjectionMatrix());
 
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(settings.background);
+    editorScene = new THREE.Scene();
+    editorScene.background = new THREE.Color(settings.background);
+    mainScene = new THREE.Scene();
 
-    rendering.addColor(settings, 'background').onChange((color) => { scene.background = new THREE.Color(color) });
+
+    rendering.addColor(settings, 'background').onChange((color) => { editorScene.background = new THREE.Color(color) });
 
     let setWireframe = (wireframe) => {
+        if (mainScene.overrideMaterial) {
+            mainScene.overrideMaterial.wireframe = wireframe;
+        }
         /** @type {THREE.Object3D} */
-        let object = scene.getObjectByName('MainObject');
+        let object = mainScene.getObjectByName('MainObject');
         if (object) {
             object.traverse((child) => {
                 if (child['material']) {
@@ -64,6 +69,8 @@ function init() {
 
     // renderer
     renderer = new THREE.WebGLRenderer();
+    renderer.autoClearColor = false;
+    renderer.autoClearDepth = false;
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     container.appendChild(renderer.domElement);
@@ -125,7 +132,7 @@ function init() {
             }
         }
         object.name = 'MainObject';
-        scene.add(object);
+        mainScene.add(object);
 
         /** 
          * @param {THREE.Object3D} baseObject 
@@ -151,7 +158,7 @@ function init() {
         var bbox = new THREE.BoxHelper(object);
         bbox.name = 'MainObjectBBox';
         bbox.visible = settings.boundingBox;
-        scene.add(bbox);
+        editorScene.add(bbox);
         rendering.add(bbox, 'visible').name('show bounding box');
 
         if (bbox.geometry) {
@@ -172,11 +179,12 @@ function init() {
 
     light = new THREE.HemisphereLight(0xffffff, 0x444444, 1.0);
     light.position.set(0, 1, 0);
-    scene.add(light);
+    mainScene.add(light);
 
     light = new THREE.DirectionalLight(0xffffff, 1.0);
     light.position.set(0, 1, 0);
-    scene.add(light);
+    mainScene.add(light);
+
 
     // materials
     let materials = generateMaterials();
@@ -202,10 +210,10 @@ function init() {
         lz: 1.0,
         postprocessing: false,
         updateColor: function() {
-            if (scene.overrideMaterial) {
+            if (mainScene.overrideMaterial) {
                 let color = new THREE.Color();
                 color.setHSL(this.hue, this.saturation, this.lightness);
-                scene.overrideMaterial.color = color;
+                mainScene.overrideMaterial.color = color;
             }
         }
     };
@@ -229,7 +237,8 @@ function init() {
             }
             current_material = id;
             var mat = materials[ id ];
-            scene.overrideMaterial = mat.m;
+            mainScene.overrideMaterial = mat.m;
+            setWireframe(settings.wireframe);
             m_h.setValue( mat.h );
             m_s.setValue( mat.s );
             m_l.setValue( mat.l );
@@ -270,7 +279,8 @@ function animate() {
 }
 
 function render() {
-    renderer.render(scene, camera);
+    renderer.render(editorScene, camera);
+    renderer.render(mainScene, camera);
 }
 
 function generateMaterials() {
