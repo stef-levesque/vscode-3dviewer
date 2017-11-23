@@ -104,11 +104,13 @@ function init() {
 
     var fileToLoad = settings.fileToLoad;
     var ext = fileToLoad.split('.').pop();
+    var folder = fileToLoad.substring(0, fileToLoad.lastIndexOf('/') + 1);
 
     var loader;
     switch (ext) {
         case '3ds':
             loader = new THREE.TDSLoader();
+            loader.setPath(folder);
             break;
         case 'dae':
             loader = new THREE.ColladaLoader();
@@ -122,6 +124,7 @@ function init() {
         case 'obj':
         default:
             loader = new THREE.OBJLoader();
+            loader.setPath(folder);
             break;
     }
 
