@@ -301,8 +301,8 @@ function render() {
 
 function generateMaterials() {
     // environment map
-    var path = "textures/cube/pisa/";
-    var format = '.png';
+    var path = "textures/cube/Bridge2/";
+    var format = '.jpg';
     var urls = [
         path + 'px' + format, path + 'nx' + format,
         path + 'py' + format, path + 'ny' + format,
