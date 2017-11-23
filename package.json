@@ -11,7 +11,9 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:3dviewer.previewMesh"
+        "onCommand:3dviewer.openInViewer",
+        "onCommand:3dviewer.openInEditor",
+        "onCommand:3dviewer.openEditor"
     ],
     "main": "./out/extension",
     "contributes": {
@@ -29,14 +31,34 @@
         ],
         "commands": [
             {
-                "command": "3dviewer.previewMesh",
-                "title": "Preview Mesh"
+                "command": "3dviewer.openInViewer",
+                "title": "Open in Viewer",
+                "category": "3DViewer"
+            },
+            {
+                "command": "3dviewer.openInEditor",
+                "title": "Open in Editor",
+                "category": "3DViewer"
+            },
+            {
+                "command": "3dviewer.openEditor",
+                "title": "Open THREE.js Editor",
+                "category": "3DViewer"
             }
         ],
         "menus": {
+            "commandPalette": [
+                {
+                    "command": "3dviewer.openEditor"
+                }
+            ],
             "explorer/context": [
                 {
-                    "command": "3dviewer.previewMesh",
+                    "command": "3dviewer.openInViewer",
+                    "when": "resourceLangId == 3dformat"
+                },
+                {
+                    "command": "3dviewer.openInEditor",
                     "when": "resourceLangId == 3dformat"
                 }
             ]

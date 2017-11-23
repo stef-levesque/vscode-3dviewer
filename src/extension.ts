@@ -1,22 +1,17 @@
 'use strict';
 
-import { commands, Disposable, ExtensionContext, Uri, ViewColumn } from 'vscode';
+import { Disposable, ExtensionContext} from 'vscode';
 import MeshPreviewContentProvider from './contentProvider';
+import EditorProvider from './editorProvider';
 
-let _disposable: Disposable[] = [];
+let _disposables: Disposable[] = [];
 
 export function activate(context: ExtensionContext) {
 
-    context.subscriptions.push(new Disposable(() => Disposable.from(..._disposable).dispose()));
+    context.subscriptions.push(new Disposable(() => Disposable.from(..._disposables).dispose()));
     
-    _disposable.push( new MeshPreviewContentProvider(context) );
-    
-    _disposable.push( commands.registerCommand("3dviewer.previewMesh", (fileUri: Uri) => {
-        if (fileUri) {
-            let previewUri = fileUri.with({scheme: 'preview3d'});
-            commands.executeCommand('vscode.previewHtml', previewUri, ViewColumn.Active, "3D Mesh Preview");
-            console.log(previewUri.toString());
-        }
-    }));
+    _disposables.push( new MeshPreviewContentProvider(context) );
+
+    _disposables.push( new EditorProvider(context) );
 
 }

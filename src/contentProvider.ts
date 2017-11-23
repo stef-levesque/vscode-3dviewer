@@ -1,6 +1,6 @@
 'use strict';
 
-import { Disposable, TextDocumentContentProvider, Uri, EventEmitter, Event, workspace, ExtensionContext } from 'vscode';
+import { Disposable, TextDocumentContentProvider, Uri, EventEmitter, Event, workspace, ExtensionContext, commands, ViewColumn } from 'vscode';
 
 import * as path from 'path';
 
@@ -21,6 +21,14 @@ export default class MeshPreviewContentProvider implements TextDocumentContentPr
         this._disposables.push(
             workspace.registerTextDocumentContentProvider('preview3d', this)
         );
+
+        this._disposables.push( commands.registerCommand("3dviewer.openInViewer", (fileUri: Uri) => {
+            if (fileUri) {
+                let previewUri = fileUri.with({scheme: 'preview3d'});
+                commands.executeCommand('vscode.previewHtml', previewUri, ViewColumn.Active, "3D Mesh Preview");
+                console.log(previewUri.toString());
+            }
+        }));
     }
 
     static get instance() {
