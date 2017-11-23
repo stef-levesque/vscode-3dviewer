@@ -54,7 +54,8 @@ THREE.TDSLoader.prototype = {
 
 		loader.setResponseType( 'arraybuffer' );
 
-		loader.setPath( path );
+		// https://github.com/mrdoob/three.js/issues/12730
+		// loader.setPath( path );
 
 		loader.load( url, function ( data ) {
 
