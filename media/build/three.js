@@ -4,6 +4,14 @@
 	(factory((global.THREE = {})));
 }(this, (function (exports) { 'use strict';
 
+	// vscode-threejs hook
+	window.addEventListener( 'message', function ( event ) {
+		if (event.data.eval) {
+			eval(event.data.eval);
+		}
+
+	}, false );
+	
 	// Polyfills
 
 	if ( Number.EPSILON === undefined ) {
