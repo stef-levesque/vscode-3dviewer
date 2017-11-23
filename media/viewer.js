@@ -168,17 +168,17 @@ function init() {
         }
 
         let transformFolder = gui.addFolder('Transform');
-        transformFolder.add(object.position, 'pos x');
-        transformFolder.add(object.position, 'pos y');
-        transformFolder.add(object.position, 'pos z');
+        transformFolder.add(object.position, 'x').name('pos x');
+        transformFolder.add(object.position, 'y').name('pos y');
+        transformFolder.add(object.position, 'z').name('pos z');
     
-        transformFolder.add(object.scale, 'scale x');
-        transformFolder.add(object.scale, 'scale y');
-        transformFolder.add(object.scale, 'scale z');
+        transformFolder.add(object.scale, 'x').name('scale x');
+        transformFolder.add(object.scale, 'y').name('scale y');
+        transformFolder.add(object.scale, 'z').name('scale z');
 
-        transformFolder.add(object.rotation, 'rot x').min(-Math.PI).max(Math.PI).step(Math.PI / 100);
-        transformFolder.add(object.rotation, 'rot y').min(-Math.PI).max(Math.PI).step(Math.PI / 100);
-        transformFolder.add(object.rotation, 'rot z').min(-Math.PI).max(Math.PI).step(Math.PI / 100);
+        transformFolder.add(object.rotation, 'x').name('rot x').min(-Math.PI).max(Math.PI).step(Math.PI / 100);
+        transformFolder.add(object.rotation, 'y').name('rot y').min(-Math.PI).max(Math.PI).step(Math.PI / 100);
+        transformFolder.add(object.rotation, 'z').name('rot z').min(-Math.PI).max(Math.PI).step(Math.PI / 100);
 
         let modelFolder = gui.addFolder('Model');
         recursive(object, modelFolder, 'visible');
