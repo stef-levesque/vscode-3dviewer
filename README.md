@@ -1,27 +1,48 @@
-# vscode-3dsviewer
+# 3D Viewer for VSCode
 
 ## Description
 
-Preview 3D meshes in VSCode
+Preview 3D models in VSCode
 
 ## Main Features
 
-Support multiple format:
+### Model Viewer
+Support multiple formats:
 * `3ds` 3D Studio Max
 * `dae` Collada digital asset exchange
 * `fbx` Filmbox
 * `stl` STereo-Lithography
 * `obj` Wavefront OBJ
 
+![sponza](images/sponza.png)  
+  
 
+Several parameters to tweak, like materials, rendering, transform  
 ![teapot](images/teapot.png)  
   
-![sponza](images/sponza.png)  
+
+Play animations
+![animation](images/animation.png)
+  
+
+Open models from disk or online  
+![online](images/online.png)
+  
+  ---
+  
+### THREE.js Editor
+Use the [THREE.js editor](https://threejs.org/editor/) directly inside VSCode  
+![editor](images/editor.png)
   
 
 ## Commands
 
-Right-click on a supported file in the explorer, and select `Preview Mesh`
+* From the context menu supported file in the explorer
+  * `Open in Editor`
+  * `Open in Viewer`
+* From the command palette
+  * `Open THREE.js Editor`
+  * `Open URL in Viewer`
 
 ## Configuration
 
