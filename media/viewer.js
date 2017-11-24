@@ -107,7 +107,7 @@ function init() {
     var folder = fileToLoad.substring(0, fileToLoad.lastIndexOf('/') + 1);
 
     var loader;
-    switch (ext) {
+    switch (ext.toLowerCase()) {
         case '3ds':
             loader = new THREE.TDSLoader();
             loader.setPath(folder);
