@@ -69,7 +69,12 @@
         "menus": {
             "commandPalette": [
                 {
-                    "command": "3dviewer.openEditor"
+                    "command": "3dviewer.openInViewer",
+                    "when": "false"
+                },
+                {
+                    "command": "3dviewer.openInEditor",
+                    "when": "false"
                 }
             ],
             "explorer/context": [
