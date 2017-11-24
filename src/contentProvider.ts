@@ -1,6 +1,6 @@
 'use strict';
 
-import { Disposable, TextDocumentContentProvider, Uri, EventEmitter, Event, workspace, ExtensionContext, commands, ViewColumn } from 'vscode';
+import { Disposable, TextDocumentContentProvider, Uri, EventEmitter, Event, workspace, ExtensionContext, commands, ViewColumn, window } from 'vscode';
 
 import * as path from 'path';
 
@@ -19,15 +19,34 @@ export default class MeshPreviewContentProvider implements TextDocumentContentPr
         MeshPreviewContentProvider.s_instance = this;
 
         this._disposables.push(
-            workspace.registerTextDocumentContentProvider('preview3d', this)
+            workspace.registerTextDocumentContentProvider('preview3dfile', this)
+        );
+
+        this._disposables.push(
+            workspace.registerTextDocumentContentProvider('preview3dhttp', this)
+        );
+
+        this._disposables.push(
+            workspace.registerTextDocumentContentProvider('preview3dhttps', this)
         );
 
         this._disposables.push( commands.registerCommand("3dviewer.openInViewer", (fileUri: Uri) => {
             if (fileUri) {
-                let previewUri = fileUri.with({scheme: 'preview3d'});
+                let previewUri = fileUri.with({scheme: 'preview3dfile'});
                 commands.executeCommand('vscode.previewHtml', previewUri, ViewColumn.Active, "3D Mesh Preview");
                 console.log(previewUri.toString());
             }
+        }));
+
+        this._disposables.push( commands.registerCommand("3dviewer.openUrlInViewer", () => {
+            window.showInputBox({prompt: "Enter URL to open", placeHolder: "http://..."}).then((value) => {
+                if (value) {
+                    let fileUri = Uri.parse(value);
+                    let previewUri = fileUri.with({scheme: 'preview3d' + fileUri.scheme});
+                    commands.executeCommand('vscode.previewHtml', previewUri, ViewColumn.Active, "3D Mesh Preview");
+                    console.log(previewUri.toString());
+                }
+            })
         }));
     }
 
@@ -51,7 +70,7 @@ export default class MeshPreviewContentProvider implements TextDocumentContentPr
     private getSettings(uri: Uri): string {
         let config = workspace.getConfiguration('3dviewer');
         let initialData = {
-            fileToLoad: uri.with({scheme: 'file'}).toString(),
+            fileToLoad: uri.toString(),
             wireframe: config.get('wireframe', false),
             background: config.get('background', '#8f8f8f'),
             boundingBox: config.get('boundingBox', false),
@@ -82,6 +101,19 @@ export default class MeshPreviewContentProvider implements TextDocumentContentPr
     }
 
     public provideTextDocumentContent(uri: Uri): Thenable<string> {
+        switch(uri.scheme) {
+            case 'preview3dfile':
+                uri = uri.with({scheme: 'file'});
+                break;
+            case 'preview3dhttp':
+                uri = uri.with({scheme: 'http'});
+                break;
+            case 'preview3dhttps':
+                uri = uri.with({scheme: 'https'});
+                break;
+            default:
+                return null;
+        }
         return new Promise( async (resolve) => {
             resolve(`
             <!DOCTYPE html>

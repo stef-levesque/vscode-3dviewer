@@ -1,6 +1,6 @@
 'use strict';
 
-import { Disposable, Uri, workspace, ExtensionContext, commands, ViewColumn } from 'vscode';
+import { Disposable, Uri, workspace, ExtensionContext, commands, ViewColumn, window } from 'vscode';
 
 import * as Path from 'path';
 
@@ -30,6 +30,15 @@ export default class EditorProvider {
                 this.patchEditor().then( () => {
                     EditorProvider.importFile(fileUri);
                 });
+            });
+        }) );
+
+        this._disposables.push( commands.registerCommand("3dviewer.openUrlInEditor", () => {
+            window.showInputBox({prompt: "Enter URL to open", placeHolder: "http://..."}).then((value) => {
+                if (value) {
+                    let fileUri = Uri.parse(value);
+                    EditorProvider.importFile(fileUri);
+                }
             });
         }) );
 

@@ -32,7 +32,9 @@
     ],
     "activationEvents": [
         "onCommand:3dviewer.openInViewer",
+        "onCommand:3dviewer.openUrlInViewer",
         "onCommand:3dviewer.openInEditor",
+        "onCommand:3dviewer.openUrlInEditor",
         "onCommand:3dviewer.openEditor"
     ],
     "main": "./out/extension",
@@ -56,8 +58,18 @@
                 "category": "3DViewer"
             },
             {
+                "command": "3dviewer.openUrlInViewer",
+                "title": "Open URL in Viewer",
+                "category": "3DViewer"
+            },
+            {
                 "command": "3dviewer.openInEditor",
                 "title": "Open in Editor",
+                "category": "3DViewer"
+            },
+            {
+                "command": "3dviewer.openUrlInEditor",
+                "title": "Open URL in Editor",
                 "category": "3DViewer"
             },
             {
