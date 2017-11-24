@@ -57,7 +57,7 @@ export default class MeshPreviewContentProvider implements TextDocumentContentPr
             boundingBox: config.get('boundingBox', false),
             grid: config.get('grid', true),
             gridSize: config.get('gridSize', 32),
-            near: config.get('near', 0.1),
+            near: config.get('near', 0.01),
             far: config.get('far', 1000000)
         }
         return `<meta id="vscode-3dviewer-data" data-settings="${JSON.stringify(initialData).replace(/"/g, '&quot;')}">`
