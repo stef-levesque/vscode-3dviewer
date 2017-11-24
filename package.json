@@ -1,12 +1,32 @@
 {
     "name": "vscode-3dviewer",
-    "displayName": "vscode-3dviewer",
-    "description": "Preview 3D meshes in VSCode",
+    "displayName": "3D Viewer for VSCode",
+    "description": "Preview 3D models in VSCode",
     "version": "0.1.0",
     "publisher": "slevesque",
+    "license": "LICENSE.md",
+    "icon": "icon.png",
+    "bugs": {
+        "url": "https://github.com/stef-levesque/vscode-3dviewer/issues"
+    },
+    "homepage": "https://github.com/stef-levesque/vscode-3dviewer",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/stef-levesque/vscode-3dviewer.git"
+    },
+    "galleryBanner": {
+        "color": "#0075c3",
+        "theme": "dark"
+    },
     "engines": {
         "vscode": "^1.18.0"
     },
+    "keywords": [
+        "vscode",
+        "3d",
+        "viewer",
+        "webgl"
+    ],
     "categories": [
         "Other"
     ],
