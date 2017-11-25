@@ -99,7 +99,7 @@ textarea, input { outline: none; } /* osx */
 }
 
 #outliner .type:after {
-	content: 'â– ';
+	content: '•';
 }
 
 #outliner .Scene {

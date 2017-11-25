@@ -123,7 +123,7 @@ Sidebar.Project = function ( editor ) {
 
 	// Renderer / Gamma input
 
-	var rendererGammaInput = new UI.THREE.Boolean( config.getKey( 'project/renderer/gammaInput' ), 'γ input' ).onChange( function () {
+	var rendererGammaInput = new UI.THREE.Boolean( config.getKey( 'project/renderer/gammaInput' ), 'gamma input' ).onChange( function () {
 
 		config.setKey( 'project/renderer/gammaInput', this.getValue() );
 		updateRenderer();
@@ -131,9 +131,11 @@ Sidebar.Project = function ( editor ) {
 	} );
 	rendererPropertiesRow.add( rendererGammaInput );
 
+	rendererPropertiesRow.add( new UI.Break() );
+
 	// Renderer / Gamma output
 
-	var rendererGammaOutput = new UI.THREE.Boolean( config.getKey( 'project/renderer/gammaOutput' ), 'γ output' ).onChange( function () {
+	var rendererGammaOutput = new UI.THREE.Boolean( config.getKey( 'project/renderer/gammaOutput' ), 'gamma output' ).onChange( function () {
 
 		config.setKey( 'project/renderer/gammaOutput', this.getValue() );
 		updateRenderer();
