@@ -43,6 +43,7 @@ export default class EditorProvider {
         }) );
 
         this._disposables.push( commands.registerCommand("3dviewer.onMessage", EditorProvider.onMessage) );
+        this._disposables.push( commands.registerCommand("3dviewer.displayString", EditorProvider.displayString) );
         this._disposables.push( commands.registerCommand("3dviewer.sendCommand", EditorProvider.sendCommand) );
         this._disposables.push( commands.registerCommand("3dviewer.importFile", EditorProvider.importFile) );
 
@@ -76,19 +77,39 @@ export default class EditorProvider {
         this._disposables.forEach(d => d.dispose());
     }
 
-    private patchEditor() {
+    // Javascript Functions to replace on client in order to patch the editor
+    private patchEditor(): Thenable<boolean> {
         return Promise.all<boolean, boolean, boolean>([
             // VSCode webview doesn't support modal window
             EditorProvider.sendCommand('window.alert = window.parent.alert'),
             EditorProvider.sendCommand('window.confirm = window.parent.confirm'),
 
             // Send message back to host
-            EditorProvider.sendCommand('window.messageHost = (m) => {window.parent.postMessage({command: "did-click-link",data: `command:3dviewer.onMessage?${encodeURIComponent(JSON.stringify(m))}`}, "file://");}')
-        ]);
+            EditorProvider.sendCommand('window.messageHost = (m) => {window.parent.postMessage({command: "did-click-link",data: `command:3dviewer.onMessage?${encodeURIComponent(JSON.stringify(m))}`}, "file://");}'),
+
+            // Display on the side when a file is exported
+            EditorProvider.sendCommand(`
+                window.URL.createObjectURL = (blob) => {
+                    var reader = new FileReader();
+                    reader.addEventListener("loadend", () => {
+                        window.parent.postMessage({
+                            command: "did-click-link",
+                            data: \`command:3dviewer.displayString?\${encodeURIComponent(JSON.stringify(reader.result))}\`
+                        }, "file://");
+                    });
+                    reader.readAsText(blob);
+                    return "#";
+                }`)
+        ]).then((values) => { return values.every(b=>b)});
     }
 
     private static onMessage(e) {
         console.log(e);
     }
 
+    private static displayString(text) {
+        workspace.openTextDocument({language: 'json', content: text}).then((doc) => {
+            window.showTextDocument(doc, ViewColumn.Three, true);
+        });
+    }
 }
