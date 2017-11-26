@@ -27,9 +27,8 @@ export default class EditorProvider {
 
         this._disposables.push( commands.registerCommand("3dviewer.openInEditor", (fileUri: Uri) => {
             commands.executeCommand('vscode.previewHtml', EditorProvider.s_editorUri, ViewColumn.Active, "THREE.js Editor").then( (e) => {
-                this.patchEditor().then( () => {
-                    EditorProvider.importFile(fileUri);
-                });
+                this.patchEditor();
+                EditorProvider.importFile(fileUri);
             });
         }) );
 
@@ -77,30 +76,9 @@ export default class EditorProvider {
         this._disposables.forEach(d => d.dispose());
     }
 
-    // Javascript Functions to replace on client in order to patch the editor
-    private patchEditor(): Thenable<boolean> {
-        return Promise.all<boolean, boolean, boolean>([
-            // VSCode webview doesn't support modal window
-            EditorProvider.sendCommand('window.alert = window.parent.alert'),
-            EditorProvider.sendCommand('window.confirm = window.parent.confirm'),
-
-            // Send message back to host
-            EditorProvider.sendCommand('window.messageHost = (m) => {window.parent.postMessage({command: "did-click-link",data: `command:3dviewer.onMessage?${encodeURIComponent(JSON.stringify(m))}`}, "file://");}'),
-
-            // Display on the side when a file is exported
-            EditorProvider.sendCommand(`
-                window.URL.createObjectURL = (blob) => {
-                    var reader = new FileReader();
-                    reader.addEventListener("loadend", () => {
-                        window.parent.postMessage({
-                            command: "did-click-link",
-                            data: \`command:3dviewer.displayString?\${encodeURIComponent(JSON.stringify(reader.result))}\`
-                        }, "file://");
-                    });
-                    reader.readAsText(blob);
-                    return "#";
-                }`)
-        ]).then((values) => { return values.every(b=>b)});
+    // Inject script file on client in order to patch the editor functionalities
+    private patchEditor() {
+        EditorProvider.sendCommand(`document.body.appendChild(document.createElement("script")).src="${this.context.asAbsolutePath(Path.join('media', 'editorPatch.js'))}"`);
     }
 
     private static onMessage(e) {
