@@ -79,7 +79,7 @@ export default class EditorProvider {
 
     // Javascript Functions to replace on client in order to patch the editor
     private patchEditor(): Thenable<boolean> {
-        return Promise.all<boolean, boolean, boolean>([
+        return Promise.all([
             // VSCode webview doesn't support modal window
             EditorProvider.sendCommand('window.alert = window.parent.alert'),
             EditorProvider.sendCommand('window.confirm = window.parent.confirm'),
