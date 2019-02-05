@@ -19,7 +19,7 @@
         "theme": "dark"
     },
     "engines": {
-        "vscode": "^1.18.0"
+        "vscode": "^1.30.0"
     },
     "keywords": [
         "vscode",
@@ -114,6 +114,6 @@
         "@types/three": "^0.84.30",
         "@types/webgl-ext": "0.0.29",
         "typescript": "^2.9.1",
-        "vscode": "^1.1.18"
+        "vscode": "^1.1.28"
     }
 }

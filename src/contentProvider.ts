@@ -1,70 +1,142 @@
 'use strict';
 
-import { Disposable, TextDocumentContentProvider, Uri, EventEmitter, Event, workspace, ExtensionContext, commands, ViewColumn, window } from 'vscode';
+import {
+    commands,
+    window,
+    workspace,
+    Disposable,
+    Uri,
+    ViewColumn,
+    WebviewPanel,
+    ExtensionContext,
+    WebviewPanelSerializer,
+} from 'vscode';
 
 import * as path from 'path';
 
-export default class MeshPreviewContentProvider implements TextDocumentContentProvider {
+export default class ViewerProvider {
+    private static s_instance?: ViewerProvider = null;
     
-    private static s_instance: MeshPreviewContentProvider = null;
+    private readonly _extensionPath: string;
+    private _viewers: ViewerPanel[] = [];
     private _disposables: Disposable[] = [];    
-    private _onDidChange = new EventEmitter<Uri>();
 
-    constructor(
-        private context: ExtensionContext
-    ) {
-        if(MeshPreviewContentProvider.s_instance) {
-            MeshPreviewContentProvider.s_instance.dispose();
+    constructor(context: ExtensionContext) {
+        if (ViewerProvider.s_instance) {
+            ViewerProvider.s_instance.dispose();
         }
-        MeshPreviewContentProvider.s_instance = this;
+        ViewerProvider.s_instance = this;
 
-        this._disposables.push(
-            workspace.registerTextDocumentContentProvider('preview3dfile', this)
-        );
+        this._extensionPath = context.extensionPath;
 
-        this._disposables.push(
-            workspace.registerTextDocumentContentProvider('preview3dhttp', this)
-        );
-
-        this._disposables.push(
-            workspace.registerTextDocumentContentProvider('preview3dhttps', this)
-        );
-
-        this._disposables.push( commands.registerCommand("3dviewer.openInViewer", (fileUri: Uri) => {
+        this._disposables.push(commands.registerCommand('3dviewer.openInViewer', (fileUri: Uri) => {
             if (fileUri) {
-                let previewUri = fileUri.with({scheme: 'preview3dfile'});
-                commands.executeCommand('vscode.previewHtml', previewUri, ViewColumn.Active, "3D Mesh Preview");
-                console.log(previewUri.toString());
+                for (const v of this._viewers) {
+                    if (v.fileUri.toString() === fileUri.toString()) {
+                        v.reveal();
+                        return;
+                    }
+                }
+
+                this._viewers.push(new ViewerPanel(this._extensionPath, fileUri));
             }
         }));
 
-        this._disposables.push( commands.registerCommand("3dviewer.openUrlInViewer", () => {
-            window.showInputBox({prompt: "Enter URL to open", placeHolder: "http://..."}).then((value) => {
-                if (value) {
-                    let fileUri = Uri.parse(value);
-                    let previewUri = fileUri.with({scheme: 'preview3d' + fileUri.scheme});
-                    commands.executeCommand('vscode.previewHtml', previewUri, ViewColumn.Active, "3D Mesh Preview");
-                    console.log(previewUri.toString());
+        this._disposables.push(commands.registerCommand("3dviewer.openUrlInViewer", () => {
+            window.showInputBox({ prompt: "Enter URL to open", placeHolder: "http://..." }).then(async (value) => {
+                const fileUri = Uri.parse(value);
+            if (fileUri) {
+                    for (const v of this._viewers) {
+                        if (v.fileUri.toString() === fileUri.toString()) {
+                            v.reveal();
+                            return;
+            }
+                    }
+
+                    this._viewers.push(new ViewerPanel(this._extensionPath, fileUri));
                 }
-            })
+            });
         }));
+
     }
 
     static get instance() {
-        return MeshPreviewContentProvider.s_instance;
+        return ViewerProvider.s_instance;
     }
 
     public dispose(): void {
-        this._onDidChange.dispose();
-        if(MeshPreviewContentProvider.s_instance) {
-            MeshPreviewContentProvider.s_instance.dispose();
-            MeshPreviewContentProvider.s_instance = null;
+        this._disposables.forEach(d => d.dispose());
+        this._viewers.forEach(d => d.dispose());
+        if (ViewerProvider.s_instance === this) {
+            ViewerProvider.s_instance = null;
         }
+    }
+
+    static removeViewer(viewer: ViewerPanel) {
+        if (ViewerProvider.s_instance) {
+            const index = ViewerProvider.s_instance._viewers.indexOf(viewer);
+            if (index > -1) {
+                ViewerProvider.s_instance._viewers.splice(index, 1);
+            }
+        }
+    }
+}
+
+class ViewerPanel {
+
+    public static readonly viewType = '3dViewer';
+    private readonly _fileUri: Uri;
+
+    private readonly _extensionPath: string;
+    private readonly _panel: WebviewPanel;
+    private _disposables: Disposable[] = [];
+
+    public constructor(extensionPath: string, fileUri: Uri) {
+        this._extensionPath = extensionPath;
+        this._fileUri = fileUri;
+
+        const column = window.activeTextEditor ? window.activeTextEditor.viewColumn : undefined;
+        this._panel = window.createWebviewPanel(ViewerPanel.viewType, "3D Mesh Preview", column || ViewColumn.One, {
+            enableScripts: true,
+            retainContextWhenHidden: true
+        });
+
+        this._panel.webview.html = this.getHtmlForWebview();
+
+        // Listen for when the panel is disposed
+        // This happens when the user closes the panel or when the panel is closed programatically
+        this._panel.onDidDispose(() => {
+            ViewerProvider.removeViewer(this);
+            this.dispose()
+        }, null, this._disposables);
+
+        // Handle messages from the webview
+        this._panel.webview.onDidReceiveMessage(message => {
+            switch (message.command) {
+                case 'alert':
+                    window.showErrorMessage(message.text);
+                    return;
+            }
+        }, null, this._disposables);
+    }
+
+    get fileUri(): Uri {
+        return this._fileUri;
+    }
+
+    public reveal() {
+        this._panel.reveal();
+        }
+
+    public dispose() {
+        // Clean up our resources
+        this._panel.dispose();
         this._disposables.forEach(d => d.dispose());
     }
 
-    private getMediaPath(mediaFile: string): string {
-		return Uri.file(this.context.asAbsolutePath(path.join('media', mediaFile))).toString();
+    private getMediaPath(scheme: string, mediaFile: string): Uri {
+        return Uri.file(path.join(this._extensionPath, 'media', mediaFile))
+            .with({ scheme: scheme });
     }
 
     private getSettings(uri: Uri): string {
@@ -82,48 +154,45 @@ export default class MeshPreviewContentProvider implements TextDocumentContentPr
         return `<meta id="vscode-3dviewer-data" data-settings="${JSON.stringify(initialData).replace(/"/g, '&quot;')}">`
     }
 
-    private getScripts(): string {
+    private getScripts(scheme: string): string {
         const scripts = [
-            this.getMediaPath('build/three.js'), 
-            this.getMediaPath('examples/js/libs/inflate.min.js'),
-            this.getMediaPath('examples/js/libs/dat.gui.min.js'),
-            this.getMediaPath('examples/js/controls/OrbitControls.js'),
-            this.getMediaPath('examples/js/loaders/ColladaLoader.js'),
-            this.getMediaPath('examples/js/loaders/FBXLoader.js'),
-            this.getMediaPath('examples/js/loaders/TDSLoader.js'),
-            this.getMediaPath('examples/js/loaders/OBJLoader.js'),
-            this.getMediaPath('examples/js/loaders/STLLoader.js'),
-            this.getMediaPath('viewer.js')
+            this.getMediaPath(scheme, 'build/three.js'),
+            this.getMediaPath(scheme, 'examples/js/libs/inflate.min.js'),
+            this.getMediaPath(scheme, 'examples/js/libs/dat.gui.min.js'),
+            this.getMediaPath(scheme, 'examples/js/controls/OrbitControls.js'),
+            this.getMediaPath(scheme, 'examples/js/loaders/ColladaLoader.js'),
+            this.getMediaPath(scheme, 'examples/js/loaders/FBXLoader.js'),
+            this.getMediaPath(scheme, 'examples/js/loaders/TDSLoader.js'),
+            this.getMediaPath(scheme, 'examples/js/loaders/OBJLoader.js'),
+            this.getMediaPath(scheme, 'examples/js/loaders/STLLoader.js'),
+            this.getMediaPath(scheme, 'viewer.js')
         ];
         return scripts
             .map(source => `<script src="${source}"></script>`)
             .join('\n');
     }
 
-    public provideTextDocumentContent(uri: Uri): Thenable<string> {
-        switch(uri.scheme) {
-            case 'preview3dfile':
-                uri = uri.with({scheme: 'file'});
-                break;
-            case 'preview3dhttp':
-                uri = uri.with({scheme: 'http'});
-                break;
-            case 'preview3dhttps':
-                uri = uri.with({scheme: 'https'});
-                break;
-            default:
-                return null;
-        }
-        return new Promise( async (resolve) => {
-            resolve(`
-            <!DOCTYPE html>
+    private getHtmlForWebview() {
+
+        let fileToLoad = this._fileUri.scheme === "file" ?
+            this._fileUri.with({ scheme: 'vscode-resource' }) :
+            this._fileUri;
+
+
+        // Local path to main script run in the webview
+        const scriptPathOnDisk = Uri.file(path.join(this._extensionPath, 'media', 'viewer.js'));
+
+        // And the uri we use to load this script in the webview
+        const scriptUri = scriptPathOnDisk.with({ scheme: 'vscode-resource' });
+
+        return `<!DOCTYPE html>
             <html lang="en">
                 <head>
-                    <title>three.js webgl - FBX loader</title>
-                    <meta charset="utf-8">
-                    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-                    ${this.getSettings(uri)}
-                    <base href="${this.getMediaPath('/')}">
+                <title>3D Viewer</title>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                ${this.getSettings(fileToLoad)}
+                <base href="${this.getMediaPath('vscode-resource', '/')}">
                     <style>
                         body {
                             font-family: Monospace;
@@ -136,19 +205,11 @@ export default class MeshPreviewContentProvider implements TextDocumentContentPr
                     </style>
                 </head>
                 <body>
-                    ${this.getScripts()}
+                ${this.getScripts('vscode-resource')}
                 </body>
-            </html>
-            `
-            );
-        });
+            </html>`;
     }
 
-    get onDidChange(): Event<Uri> {
-        return this._onDidChange.event;
-    }
+
     
-    public update(uri: Uri) {
-        this._onDidChange.fire(uri);
-    }
 }
