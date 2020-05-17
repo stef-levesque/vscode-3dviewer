@@ -3,6 +3,7 @@
     "displayName": "3D Viewer for VSCode",
     "description": "Preview 3D models in VSCode",
     "version": "0.1.0",
+    "enableProposedApi": true,
     "publisher": "slevesque",
     "license": "LICENSE.md",
     "icon": "icon.png",
@@ -19,7 +20,7 @@
         "theme": "dark"
     },
     "engines": {
-        "vscode": "^1.18.0"
+        "vscode": "^1.46.0"
     },
     "keywords": [
         "vscode",
@@ -31,75 +32,33 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:3dviewer.openInViewer",
-        "onCommand:3dviewer.openUrlInViewer",
-        "onCommand:3dviewer.openInEditor",
-        "onCommand:3dviewer.openUrlInEditor",
-        "onCommand:3dviewer.openEditor"
+        "onCustomEditor:3dviewer.viewer"
     ],
     "main": "./out/extension",
     "contributes": {
-        "languages": [
+        "customEditors": [
             {
-                "id": "3dformat",
-                "extensions": [
-                    ".3ds",
-                    ".dae",
-                    ".fbx",
-                    ".obj",
-                    ".stl"
-                ]
-            }
-        ],
-        "commands": [
+                "viewType": "3dviewer.viewer",
+                "displayName": "3D Mesh Viewer",
+                "selector": [
             {
-                "command": "3dviewer.openInViewer",
-                "title": "Open in Viewer",
-                "category": "3DViewer"
+                        "filenamePattern": "*.3ds"
             },
             {
-                "command": "3dviewer.openUrlInViewer",
-                "title": "Open URL in Viewer",
-                "category": "3DViewer"
+                        "filenamePattern": "*.dae"
             },
             {
-                "command": "3dviewer.openInEditor",
-                "title": "Open in Editor",
-                "category": "3DViewer"
-            },
-            {
-                "command": "3dviewer.openUrlInEditor",
-                "title": "Open URL in Editor",
-                "category": "3DViewer"
-            },
-            {
-                "command": "3dviewer.openEditor",
-                "title": "Open THREE.js Editor",
-                "category": "3DViewer"
-            }
-        ],
-        "menus": {
-            "commandPalette": [
-                {
-                    "command": "3dviewer.openInViewer",
-                    "when": "false"
+                        "filenamePattern": "*.fbx"
                 },
                 {
-                    "command": "3dviewer.openInEditor",
-                    "when": "false"
-                }
-            ],
-            "explorer/context": [
-                {
-                    "command": "3dviewer.openInViewer",
-                    "when": "resourceLangId == 3dformat"
+                        "filenamePattern": "*.obj"
                 },
                 {
-                    "command": "3dviewer.openInEditor",
-                    "when": "resourceLangId == 3dformat"
+                        "filenamePattern": "*.stl"
                 }
             ]
         }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
