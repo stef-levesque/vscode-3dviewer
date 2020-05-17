@@ -1,17 +1,12 @@
-'use strict';
+import * as vscode from 'vscode';
 
-import { Disposable, ExtensionContext} from 'vscode';
-import MeshPreviewContentProvider from './contentProvider';
-import EditorProvider from './editorProvider';
+import { MeshViewerProvider } from './MeshViewerProvider';
 
-let _disposables: Disposable[] = [];
+export function activate(context: vscode.ExtensionContext) {
 
-export function activate(context: ExtensionContext) {
-
-    context.subscriptions.push(new Disposable(() => Disposable.from(..._disposables).dispose()));
+    // Register our custom editor providers
+    if (+vscode.version.match(/1\.(\d+)/)![1] >= 45) {
+        context.subscriptions.push(MeshViewerProvider.register(context));
+    }
     
-    _disposables.push( new MeshPreviewContentProvider(context) );
-
-    _disposables.push( new EditorProvider(context) );
-
 }
