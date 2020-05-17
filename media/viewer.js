@@ -46,7 +46,7 @@ function init() {
                         for (let m of material) {
                             m.wireframe = wireframe;
                         }
-                    } else  {
+                    } else {
                         material.wireframe = wireframe;
                     }
                 }
@@ -58,7 +58,7 @@ function init() {
         setWireframe(settings.wireframe);
     }
 
-    rendering.add(settings, 'wireframe').onChange( setWireframe );
+    rendering.add(settings, 'wireframe').onChange(setWireframe);
 
     // grid
     let createGrid = () => {
@@ -70,7 +70,7 @@ function init() {
     }
     createGrid();
     rendering.add(settings, 'grid').name('show grid').onChange((value) => { editorScene.getObjectByName('grid').visible = value; });
-    rendering.add(settings, 'gridSize').min(1).max(100).step(1).onChange((value) => {editorScene.remove(editorScene.getObjectByName('grid')); createGrid();});
+    rendering.add(settings, 'gridSize').min(1).max(100).step(1).onChange((value) => { editorScene.remove(editorScene.getObjectByName('grid')); createGrid(); });
 
     // renderer
     renderer = new THREE.WebGLRenderer();
@@ -130,10 +130,10 @@ function init() {
 
     loader.load(fileToLoad, function (file) {
         window['file'] = file;
-        
-        var object = file.scene ? file.scene : 
-                     file.isGeometry || file.isBufferGeometry ? new THREE.Mesh(file) : 
-                     file;
+
+        var object = file.scene ? file.scene :
+            file.isGeometry || file.isBufferGeometry ? new THREE.Mesh(file) :
+                file;
         object.mixer = new THREE.AnimationMixer(object);
         mixers.push(object.mixer);
         if (file.animations && file.animations.length) {
@@ -141,9 +141,9 @@ function init() {
             action.play();
             let animation = gui.addFolder('Animation');
 
-            for (let i=0; i<file.animations.length; ++i) {
-                animation.add( object.mixer.clipAction(file.animations[i]), 'play').name('play animation ' + i);
-                animation.add( object.mixer.clipAction(file.animations[i]), 'stop').name('stop animation ' + i);
+            for (let i = 0; i < file.animations.length; ++i) {
+                animation.add(object.mixer.clipAction(file.animations[i]), 'play').name('play animation ' + i);
+                animation.add(object.mixer.clipAction(file.animations[i]), 'stop').name('stop animation ' + i);
             }
         }
         object.name = 'MainObject';
@@ -171,7 +171,7 @@ function init() {
         transformFolder.add(object.position, 'x').name('pos x');
         transformFolder.add(object.position, 'y').name('pos y');
         transformFolder.add(object.position, 'z').name('pos z');
-    
+
         transformFolder.add(object.scale, 'x').name('scale x');
         transformFolder.add(object.scale, 'y').name('scale y');
         transformFolder.add(object.scale, 'z').name('scale z');
@@ -225,7 +225,7 @@ function init() {
         lhue: 0.04,
         lsaturation: 1.0,
         llightness: 0.5,
-        updateColor: function() {
+        updateColor: function () {
             if (mainScene.overrideMaterial) {
                 let color = new THREE.Color();
                 color.setHSL(this.hue, this.saturation, this.lightness);
@@ -233,7 +233,7 @@ function init() {
             }
         }
     };
-    
+
     let colorFolder = gui.addFolder("Material color");
     var m_h = colorFolder.add(effectController, "hue", 0.0, 1.0).step(0.025);
     var m_s = colorFolder.add(effectController, "saturation", 0.0, 1.0).step(0.025);
@@ -243,28 +243,28 @@ function init() {
     m_s.onChange(() => effectController.updateColor());
     m_l.onChange(() => effectController.updateColor());
 
-    var createHandler = function( id ) {
-        return function() {
+    var createHandler = function (id) {
+        return function () {
             if (current_material != 0) {
-                var mat_old = materials[ current_material ];
+                var mat_old = materials[current_material];
                 mat_old.h = m_h.getValue();
                 mat_old.s = m_s.getValue();
                 mat_old.l = m_l.getValue();
             }
             current_material = id;
-            var mat = materials[ id ];
+            var mat = materials[id];
             mainScene.overrideMaterial = mat.m;
             setWireframe(settings.wireframe);
-            m_h.setValue( mat.h );
-            m_s.setValue( mat.s );
-            m_l.setValue( mat.l );
+            m_h.setValue(mat.h);
+            m_s.setValue(mat.s);
+            m_l.setValue(mat.l);
         };
     };
 
-    let matFolder = gui.addFolder( "Materials" );
-    for ( var m in materials ) {
-        effectController[ m ] = createHandler( m );
-        matFolder.add( effectController, m ).name( m );
+    let matFolder = gui.addFolder("Materials");
+    for (var m in materials) {
+        effectController[m] = createHandler(m);
+        matFolder.add(effectController, m).name(m);
     }
 
     animate();
@@ -309,9 +309,9 @@ function generateMaterials() {
         path + 'pz' + format, path + 'nz' + format
     ];
     var cubeTextureLoader = new THREE.CubeTextureLoader();
-    var reflectionCube = cubeTextureLoader.load( urls );
+    var reflectionCube = cubeTextureLoader.load(urls);
     reflectionCube.format = THREE.RGBFormat;
-    var refractionCube = cubeTextureLoader.load( urls );
+    var refractionCube = cubeTextureLoader.load(urls);
     reflectionCube.format = THREE.RGBFormat;
     refractionCube.mapping = THREE.CubeRefractionMapping;
 
@@ -320,49 +320,49 @@ function generateMaterials() {
     var texture = new THREE.TextureLoader().load( "textures/UV_Grid_Sm.jpg" );
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     var materials = {
-        "default" : 
+        "default":
         {
             m: null,
             h: 0, s: 0, l: 1
         },
-        "chrome" :
+        "chrome":
         {
-            m: new THREE.MeshLambertMaterial( { color: 0xffffff, envMap: reflectionCube } ),
+            m: new THREE.MeshLambertMaterial({ color: 0xffffff, envMap: reflectionCube }),
             h: 0, s: 0, l: 1
         },
-        "liquid" :
+        "liquid":
         {
-            m: new THREE.MeshLambertMaterial( { color: 0xffffff, envMap: refractionCube, refractionRatio: 0.85 } ),
+            m: new THREE.MeshLambertMaterial({ color: 0xffffff, envMap: refractionCube, refractionRatio: 0.85 }),
             h: 0, s: 0, l: 1
         },
-        "shiny"  :
+        "shiny":
         {
-            m: new THREE.MeshStandardMaterial( { color: 0x550000, envMap: reflectionCube, roughness: 0.1, metalness: 1.0 } ),
+            m: new THREE.MeshStandardMaterial({ color: 0x550000, envMap: reflectionCube, roughness: 0.1, metalness: 1.0 }),
             h: 0, s: 0.8, l: 0.2
         },
-        "matte" :
+        "matte":
         {
-            m: new THREE.MeshPhongMaterial( { color: 0x000000, specular: 0x111111, shininess: 1 } ),
+            m: new THREE.MeshPhongMaterial({ color: 0x000000, specular: 0x111111, shininess: 1 }),
             h: 0, s: 0, l: 1
         },
-        "flat" :
+        "flat":
         {
-            m: new THREE.MeshPhongMaterial( { color: 0x000000, specular: 0x111111, shininess: 1, flatShading: true } ),
+            m: new THREE.MeshPhongMaterial({ color: 0x000000, specular: 0x111111, shininess: 1, flatShading: true }),
             h: 0, s: 0, l: 1
         },
-        "textured" :
+        "textured":
         {
-            m: new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x111111, shininess: 1, map: texture } ),
+            m: new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x111111, shininess: 1, map: texture }),
             h: 0, s: 0, l: 1
         },
-        "colors" :
+        "colors":
         {
-            m: new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0xffffff, shininess: 2, vertexColors: THREE.VertexColors } ),
+            m: new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0xffffff, shininess: 2, vertexColors: THREE.VertexColors }),
             h: 0, s: 0, l: 1
         },
-        "plastic" :
+        "plastic":
         {
-            m: new THREE.MeshPhongMaterial( { color: 0x000000, specular: 0x888888, shininess: 250 } ),
+            m: new THREE.MeshPhongMaterial({ color: 0x000000, specular: 0x888888, shininess: 250 }),
             h: 0.6, s: 0.8, l: 0.1
         },
     }
