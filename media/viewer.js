@@ -129,7 +129,6 @@ function init() {
         case 'obj':
         default:
             loader = new THREE.OBJLoader();
-            loader.setPath(folder);
             break;
     }
 
