@@ -123,6 +123,9 @@ function init() {
         case 'stl':
             loader = new THREE.STLLoader();
             break;
+        case 'ply':
+            loader = new THREE.PLYLoader();
+            break;
         case 'obj':
         default:
             loader = new THREE.OBJLoader();
