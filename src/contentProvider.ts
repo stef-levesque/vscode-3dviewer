@@ -6,7 +6,7 @@ import * as path from 'path';
 
 export default class MeshPreviewContentProvider implements TextDocumentContentProvider {
     
-    private static s_instance: MeshPreviewContentProvider = null;
+    private static s_instance: MeshPreviewContentProvider | null = null;
     private _disposables: Disposable[] = [];    
     private _onDidChange = new EventEmitter<Uri>();
 
@@ -100,7 +100,7 @@ export default class MeshPreviewContentProvider implements TextDocumentContentPr
             .join('\n');
     }
 
-    public provideTextDocumentContent(uri: Uri): Thenable<string> {
+    public provideTextDocumentContent(uri: Uri): Thenable<string> | string {
         switch(uri.scheme) {
             case 'preview3dfile':
                 uri = uri.with({scheme: 'file'});
@@ -112,7 +112,7 @@ export default class MeshPreviewContentProvider implements TextDocumentContentPr
                 uri = uri.with({scheme: 'https'});
                 break;
             default:
-                return null;
+                return "";
         }
         return new Promise( async (resolve) => {
             resolve(`

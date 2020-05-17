@@ -6,8 +6,8 @@ import * as Path from 'path';
 
 export default class EditorProvider {
     
-    private static s_instance?: EditorProvider = null;
-    private static s_editorUri?: Uri = null;
+    private static s_instance: EditorProvider | null = null;
+    private static s_editorUri: Uri | null= null;
     private _disposables: Disposable[] = [];
 
     constructor(
@@ -52,14 +52,14 @@ export default class EditorProvider {
         return EditorProvider.s_instance;
     }
 
-    static sendCommand(command: string): Thenable<boolean> {
+    static sendCommand(command: string): Thenable<boolean|undefined> {
         if (EditorProvider.s_editorUri) {
             return commands.executeCommand<boolean>('_workbench.htmlPreview.postMessage', EditorProvider.s_editorUri, {eval: command})
         }
         return Promise.resolve(false);
     }
 
-    static importFile(uri: Uri): Thenable<boolean> {
+    static importFile(uri: Uri): Thenable<boolean|undefined> {
         return EditorProvider.sendCommand(`
             if (!window.fileLoader) {
                 window.fileLoader = new THREE.FileLoader();
@@ -81,11 +81,11 @@ export default class EditorProvider {
         EditorProvider.sendCommand(`document.body.appendChild(document.createElement("script")).src="${this.context.asAbsolutePath(Path.join('media', 'editorPatch.js'))}"`);
     }
 
-    private static onMessage(e) {
+    private static onMessage(e: any) {
         console.log(e);
     }
 
-    private static displayString(text) {
+    private static displayString(text?: string) {
         workspace.openTextDocument({language: 'json', content: text}).then((doc) => {
             window.showTextDocument(doc, ViewColumn.Three, true);
         });
