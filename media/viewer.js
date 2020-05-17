@@ -17,6 +17,8 @@ function init() {
     // get user settings
     var settings = JSON.parse(document.getElementById('vscode-3dviewer-data').getAttribute('data-settings'));
 
+    var mediaSrc = document.getElementById('media').getAttribute('src');
+
     // user interface
     gui = new dat.GUI();
     rendering = gui.addFolder('Rendering');
@@ -215,7 +217,7 @@ function init() {
 
 
     // materials
-    let materials = generateMaterials();
+    let materials = generateMaterials(mediaSrc);
     var current_material = 0;
 
     let effectController = {
@@ -299,9 +301,9 @@ function render() {
     renderer.render(mainScene, camera);
 }
 
-function generateMaterials() {
+function generateMaterials(mediaSrc) {
     // environment map
-    var path = "textures/cube/Bridge2/";
+    var path = mediaSrc + "/textures/cube/Bridge2/";
     var format = '.jpg';
     var urls = [
         path + 'px' + format, path + 'nx' + format,
@@ -317,7 +319,7 @@ function generateMaterials() {
 
     editorScene.background = reflectionCube;
 
-    var texture = new THREE.TextureLoader().load( "textures/UV_Grid_Sm.jpg" );
+    var texture = new THREE.TextureLoader().load(mediaSrc + "/textures/UV_Grid_Sm.jpg");
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     var materials = {
         "default":
