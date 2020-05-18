@@ -4,20 +4,6 @@ import { getNonce } from './util';
 import { Disposable, disposeAll } from './dispose';
 
 
-// /**
-//  * Define the type of edits used for mesh files.
-//  */
-// interface MeshDrawEdit {
-//     readonly color: string;
-//     readonly stroke: ReadonlyArray<[number, number]>;
-// }
-
-
-interface MeshViewerDocumentDelegate {
-    getFileData(): Promise<Uint8Array>;
-}
-
-
 /**
  * Define the document (the data model) used for mesh files.
  */
@@ -25,37 +11,21 @@ class MeshViewerDocument extends Disposable implements vscode.CustomDocument {
 
     static async create(
         uri: vscode.Uri,
-        backupId: string | undefined,
-        delegate: MeshViewerDocumentDelegate,
+        backupId: string | undefined
     ): Promise<MeshViewerDocument | PromiseLike<MeshViewerDocument>> {
         // If we have a backup, read that. Otherwise read the resource from the workspace
         const dataFile = typeof backupId === 'string' ? vscode.Uri.parse(backupId) : uri;
-        const fileData = await vscode.workspace.fs.readFile(dataFile);
-        return new MeshViewerDocument(uri, fileData, delegate);
+        return new MeshViewerDocument(uri);
     }
 
     private readonly _uri: vscode.Uri;
 
-    private _documentData: Uint8Array;
-    // private _edits: Array<MeshDrawEdit> = [];
-    // private _savedEdits: Array<MeshDrawEdit> = [];
-
-    private readonly _delegate: MeshViewerDocumentDelegate;
-
-    private constructor(
-        uri: vscode.Uri,
-        initialContent: Uint8Array,
-        delegate: MeshViewerDocumentDelegate
-    ) {
+    private constructor(uri: vscode.Uri) {
         super();
         this._uri = uri;
-        this._documentData = initialContent;
-        this._delegate = delegate;
     }
 
     public get uri(): vscode.Uri { return this._uri; }
-
-    public get documentData(): Uint8Array { return this._documentData; }
 
     private readonly _onDidDispose = this._register(new vscode.EventEmitter<void>());
     /**
@@ -63,26 +33,12 @@ class MeshViewerDocument extends Disposable implements vscode.CustomDocument {
      */
     public readonly onDidDispose = this._onDidDispose.event;
 
-    private readonly _onDidChangeDocument = this._register(new vscode.EventEmitter<{
-        readonly content?: Uint8Array;
-        //readonly edits: readonly MeshDrawEdit[];
-    }>());
+    private readonly _onDidChangeDocument = this._register(new vscode.EventEmitter<void>());
     /**
      * Fired to notify webviews that the document has changed.
      */
     public readonly onDidChangeContent = this._onDidChangeDocument.event;
 
-    private readonly _onDidChange = this._register(new vscode.EventEmitter<{
-        readonly label: string,
-        undo(): void,
-        redo(): void,
-    }>());
-    /**
-     * Fired to tell VS Code that an edit has occured in the document.
-     * 
-     * This updates the document's dirty indicator.
-     */
-    public readonly onDidChange = this._onDidChange.event;
 
     /**
      * Called by VS Code when there are no more references to the document.
@@ -93,92 +49,13 @@ class MeshViewerDocument extends Disposable implements vscode.CustomDocument {
         this._onDidDispose.fire();
         super.dispose();
     }
-
-    /**
-     * Called when the user edits the document in a webview.
-     * 
-     * This fires an event to notify VS Code that the document has been edited.
-     */
-    // makeEdit(edit: MeshDrawEdit) {
-    //     this._edits.push(edit);
-
-    //     this._onDidChange.fire({
-    //         label: 'Stroke',
-    //         undo: async () => {
-    //             this._edits.pop();
-    //             this._onDidChangeDocument.fire({
-    //                 edits: this._edits,
-    //             });
-    //         },
-    //         redo: async () => {
-    //             this._edits.push(edit);
-    //             this._onDidChangeDocument.fire({
-    //                 edits: this._edits,
-    //             });
-    //         }
-    //     });
-    // }
-
-    /**
-     * Called by VS Code when the user saves the document.
-     */
-    async save(cancellation: vscode.CancellationToken): Promise<void> {
-        await this.saveAs(this.uri, cancellation);
-        //TODO
-        //this._savedEdits = Array.from(this._edits);
-    }
-
-    /**
-     * Called by VS Code when the user saves the document to a new location.
-     */
-    async saveAs(targetResource: vscode.Uri, cancellation: vscode.CancellationToken): Promise<void> {
-        const fileData = await this._delegate.getFileData();
-        if (cancellation.isCancellationRequested) {
-            return;
-        }
-        await vscode.workspace.fs.writeFile(targetResource, fileData);
-    }
-
-    /**
-     * Called by VS Code when the user calls `revert` on a document.
-     */
-    async revert(_cancellation: vscode.CancellationToken): Promise<void> {
-        //TODO
-        // const diskContent = await vscode.workspace.fs.readFile(this.uri);
-        // this._documentData = diskContent;
-        // this._edits = this._savedEdits;
-        // this._onDidChangeDocument.fire({
-        //     content: diskContent,
-        //     edits: this._edits,
-        // });
-    }
-
-    /**
-     * Called by VS Code to backup the edited document.
-     * 
-     * These backups are used to implement hot exit.
-     */
-    async backup(destination: vscode.Uri, cancellation: vscode.CancellationToken): Promise<vscode.CustomDocumentBackup> {
-        await this.saveAs(destination, cancellation);
-
-        return {
-            id: destination.toString(),
-            delete: async () => {
-                try {
-                    await vscode.workspace.fs.delete(destination);
-                } catch {
-                    // noop
-                }
-            }
-        };
-    }
 }
 
 
 /**
  * Provider for Mesh viewers.
  */
-export class MeshViewerProvider implements vscode.CustomEditorProvider<MeshViewerDocument> {
+export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<MeshViewerDocument> {
 
     public static register(context: vscode.ExtensionContext): vscode.Disposable {
         return vscode.window.registerCustomEditorProvider2(
@@ -205,42 +82,21 @@ export class MeshViewerProvider implements vscode.CustomEditorProvider<MeshViewe
         private readonly _context: vscode.ExtensionContext
     ) { }
 
-    //#region CustomEditorProvider
+    //#region CustomReadonlyEditorProvider
 
     async openCustomDocument(
         uri: vscode.Uri,
         openContext: { backupId?: string },
         _token: vscode.CancellationToken
     ): Promise<MeshViewerDocument> {
-        const document = await MeshViewerDocument.create(uri, openContext.backupId, {
-            getFileData: async () => {
-                const webviewsForDocument: any = Array.from(this.webviews.get(document.uri));
-                if (!webviewsForDocument.length) {
-                    throw new Error('Could not find webview to save for');
-                }
-                const panel = webviewsForDocument[0];
-                const response = await this.postMessageWithResponse<{ data: number[] }>(panel, 'getFileData', {});
-                return new Uint8Array(response.data);
-            }
-        });
+        const document = await MeshViewerDocument.create(uri, openContext.backupId);
 
         const listeners: vscode.Disposable[] = [];
-
-        listeners.push(document.onDidChange(e => {
-            // Tell VS Code that the document has been edited by the use.
-            this._onDidChangeCustomDocument.fire({
-                document,
-                ...e,
-            });
-        }));
 
         listeners.push(document.onDidChangeContent(e => {
             // Update all webviews when the document changes
             for (const webviewPanel of this.webviews.get(document.uri)) {
-                this.postMessage(webviewPanel, 'update', {
-                    //edits: e.edits,
-                    content: e.content,
-                });
+                this.postMessage(webviewPanel, 'update', {});
             }
         }));
 
@@ -268,30 +124,9 @@ export class MeshViewerProvider implements vscode.CustomEditorProvider<MeshViewe
         // Wait for the webview to be properly ready before we init
         webviewPanel.webview.onDidReceiveMessage(e => {
             if (e.type === 'ready') {
-                this.postMessage(webviewPanel, 'init', {
-                    value: document.documentData
-                });
+                this.postMessage(webviewPanel, 'init', {});
             }
         });
-    }
-
-    private readonly _onDidChangeCustomDocument = new vscode.EventEmitter<vscode.CustomDocumentEditEvent<MeshViewerDocument>>();
-    public readonly onDidChangeCustomDocument = this._onDidChangeCustomDocument.event;
-
-    public saveCustomDocument(document: MeshViewerDocument, cancellation: vscode.CancellationToken): Thenable<void> {
-        return document.save(cancellation);
-    }
-
-    public saveCustomDocumentAs(document: MeshViewerDocument, destination: vscode.Uri, cancellation: vscode.CancellationToken): Thenable<void> {
-        return document.saveAs(destination, cancellation);
-    }
-
-    public revertCustomDocument(document: MeshViewerDocument, cancellation: vscode.CancellationToken): Thenable<void> {
-        return document.revert(cancellation);
-    }
-
-    public backupCustomDocument(document: MeshViewerDocument, context: vscode.CustomDocumentBackupContext, cancellation: vscode.CancellationToken): Thenable<vscode.CustomDocumentBackup> {
-        return document.backup(context.destination, cancellation);
     }
 
     //#endregion
@@ -405,10 +240,6 @@ export class MeshViewerProvider implements vscode.CustomEditorProvider<MeshViewe
 
     private onMessage(document: MeshViewerDocument, message: any) {
         switch (message.type) {
-            // case 'stroke':
-            //     document.makeEdit(message as MeshDrawEdit);
-            //     return;
-
             case 'response':
                 const callback = this._callbacks.get(message.requestId);
                 callback?.(message.body);
