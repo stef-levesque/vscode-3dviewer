@@ -3,7 +3,6 @@
     "displayName": "3D Viewer for VSCode",
     "description": "Preview 3D models in VSCode",
     "version": "0.1.0",
-    "enableProposedApi": true,
     "publisher": "slevesque",
     "license": "LICENSE.md",
     "icon": "icon.png",
@@ -126,7 +125,7 @@
         "@types/mocha": "^2.2.42",
         "@types/node": "^12.12.0",
         "@types/three": "^0.84.30",
-        "@types/vscode": "^1.44.0",
+        "@types/vscode": "^1.45.1",
         "@types/webgl-ext": "0.0.31",
         "typescript": "^3.8.3"
     }

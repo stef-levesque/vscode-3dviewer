@@ -58,7 +58,7 @@ class MeshViewerDocument extends Disposable implements vscode.CustomDocument {
 export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<MeshViewerDocument> {
 
     public static register(context: vscode.ExtensionContext): vscode.Disposable {
-        return vscode.window.registerCustomEditorProvider2(
+        return vscode.window.registerCustomEditorProvider(
             MeshViewerProvider.viewType,
             new MeshViewerProvider(context),
             {
