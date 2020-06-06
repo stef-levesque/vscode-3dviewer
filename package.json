@@ -25,8 +25,15 @@
     "keywords": [
         "vscode",
         "3d",
+        "mesh",
         "viewer",
-        "webgl"
+        "webgl",
+        "3ds",
+        "dae",
+        "Collada",
+        "fbx",
+        "obj",
+        "stl"
     ],
     "categories": [
         "Other"
@@ -41,27 +48,72 @@
                 "viewType": "3dviewer.viewer",
                 "displayName": "3D Mesh Viewer",
                 "selector": [
-            {
+                    {
                         "filenamePattern": "*.3ds"
-            },
-            {
+                    },
+                    {
                         "filenamePattern": "*.dae"
-            },
-            {
+                    },
+                    {
                         "filenamePattern": "*.fbx"
-                },
-                {
+                    },
+                    {
                         "filenamePattern": "*.obj"
-                },
-                {
+                    },
+                    {
                         "filenamePattern": "*.stl"
                     },
                     {
                         "filenamePattern": "*.ply"
+                    }
+                ]
+            }
+        ],
+        "configuration": {
+            "title": "3dviewer",
+            "properties": {
+                "3dviewer.wireframe": {
+                    "type": "boolean",
+                    "description": "Display mesh in wireframe mode",
+                    "default": false
+                },
+                "3dviewer.background": {
+                    "type": "string",
+                    "description": "Default color for the background",
+                    "default": "#8f8f8f"
+                },
+                "3dviewer.boundingBox": {
+                    "type": "boolean",
+                    "description": "Display a bounding box around the model",
+                    "default": false
+                },
+                "3dviewer.grid": {
+                    "type": "boolean",
+                    "description": "Display a grid at the origin",
+                    "default": true
+                },
+                "3dviewer.gridSize": {
+                    "type": "number",
+                    "description": "Size of the grid",
+                    "default": 32
+                },
+                "3dviewer.near": {
+                    "type": "number",
+                    "description": "Distance for the near plane",
+                    "default": 0.01
+                },
+                "3dviewer.far": {
+                    "type": "number",
+                    "description": "Distance for the far plane",
+                    "default": 1000000
+                },
+                "3dviewer.limitFps": {
+                    "type": "number",
+                    "description": "Max fps (use 0 for no limit)",
+                    "default": 0
                 }
-            ]
+            }
         }
-        ]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
