@@ -305,7 +305,7 @@ function render() {
 
 function generateMaterials(mediaSrc) {
     // environment map
-    var path = mediaSrc + "/textures/cube/Bridge2/";
+    var path = "textures/cube/Bridge2/";
     var format = '.jpg';
     var urls = [
         path + 'px' + format, path + 'nx' + format,

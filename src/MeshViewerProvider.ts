@@ -212,7 +212,7 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
 
                 <link href="${styleUri}" rel="stylesheet" />
 
-                <meta id="media" src="${mediaUri}">
+                <base href="${mediaUri}/">
                 
                 ${this.getSettings(fileToLoad)}
 
