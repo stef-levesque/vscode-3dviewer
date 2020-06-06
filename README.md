@@ -55,6 +55,7 @@ Use the [THREE.js editor](https://threejs.org/editor/) directly inside VSCode
 |`3dviewer.gridSize`    |`number`  |Set the size of the grid
 |`3dviewer.near`        |`number`  |Set the near plane distance
 |`3dviewer.far`         |`number`  |Set the far plane distance
+|`3dviewer.limitFps`    |`number`  |Set the max fps (use 0 for no limit)
 
 ## Contributing
 

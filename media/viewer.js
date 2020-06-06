@@ -3,6 +3,8 @@ var container, controls;
 var camera, renderer, light;
 var editorScene, mainScene, gui, rendering;
 
+var limitFps = 0;
+
 var clock = new THREE.Clock();
 
 var mixers = [];
@@ -17,7 +19,7 @@ function init() {
     // get user settings
     var settings = JSON.parse(document.getElementById('vscode-3dviewer-data').getAttribute('data-settings'));
 
-    var mediaSrc = document.getElementById('media').getAttribute('src');
+    limitFps = settings.limitFps;
 
     // user interface
     gui = new dat.GUI();
@@ -32,7 +34,10 @@ function init() {
     mainScene = new THREE.Scene();
 
 
-    rendering.addColor(settings, 'background').onChange((color) => { editorScene.background = new THREE.Color(color) });
+    rendering.addColor(settings, 'background').onChange((color) => {
+        renderer.autoClearColor = true;
+        editorScene.background = new THREE.Color(color);
+    });
 
     let setWireframe = (wireframe) => {
         if (mainScene.overrideMaterial) {
@@ -56,10 +61,6 @@ function init() {
         }
     };
 
-    if (settings.wireframe) {
-        setWireframe(settings.wireframe);
-    }
-
     rendering.add(settings, 'wireframe').onChange(setWireframe);
 
     // grid
@@ -75,8 +76,8 @@ function init() {
     rendering.add(settings, 'gridSize').min(1).max(100).step(1).onChange((value) => { editorScene.remove(editorScene.getObjectByName('grid')); createGrid(); });
 
     // renderer
-    renderer = new THREE.WebGLRenderer();
-    renderer.autoClearColor = false;
+    renderer = new THREE.WebGLRenderer({alpha: true});
+    renderer.autoClearColor = !settings.useEnvCube;
     renderer.autoClearDepth = false;
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -205,6 +206,8 @@ function init() {
             }
         }
 
+        setWireframe(settings.wireframe);
+
     }, onProgress, onError);
 
     window.addEventListener('resize', onWindowResize, false);
@@ -219,7 +222,7 @@ function init() {
 
 
     // materials
-    let materials = generateMaterials(mediaSrc);
+    let materials = generateMaterials(settings.useEnvCube);
     var current_material = 0;
 
     let effectController = {
@@ -287,13 +290,15 @@ function onWindowResize() {
 //
 
 function animate() {
-    requestAnimationFrame(animate);
+    setTimeout(() => {
+        requestAnimationFrame(animate);
 
-    if (mixers.length > 0) {
-        for (var i = 0; i < mixers.length; i++) {
-            mixers[i].update(clock.getDelta());
+        if (mixers.length > 0) {
+            for (var i = 0; i < mixers.length; i++) {
+                mixers[i].update(clock.getDelta());
+            }
         }
-    }
+    }, limitFps ? (1000 / limitFps) : 0);
 
     render();
 }
@@ -303,7 +308,7 @@ function render() {
     renderer.render(mainScene, camera);
 }
 
-function generateMaterials(mediaSrc) {
+function generateMaterials(useEnvCube) {
     // environment map
     var path = "textures/cube/Bridge2/";
     var format = '.jpg';
@@ -319,9 +324,11 @@ function generateMaterials(mediaSrc) {
     reflectionCube.format = THREE.RGBFormat;
     refractionCube.mapping = THREE.CubeRefractionMapping;
 
-    editorScene.background = reflectionCube;
+    if (useEnvCube) {
+        editorScene.background = reflectionCube;
+    }
 
-    var texture = new THREE.TextureLoader().load(mediaSrc + "/textures/UV_Grid_Sm.jpg");
+    var texture = new THREE.TextureLoader().load("textures/UV_Grid_Sm.jpg");
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     var materials = {
         "default":
