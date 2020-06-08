@@ -38,7 +38,8 @@
         "Other"
     ],
     "activationEvents": [
-        "onCustomEditor:3dviewer.viewer"
+        "onCustomEditor:3dviewer.viewer",
+        "onCustomEditor:3dviewer.editor"
     ],
     "main": "./out/extension",
     "contributes": {
@@ -46,6 +47,30 @@
             {
                 "viewType": "3dviewer.viewer",
                 "displayName": "3D Mesh Viewer",
+                "selector": [
+                    {
+                        "filenamePattern": "*.3ds"
+                    },
+                    {
+                        "filenamePattern": "*.dae"
+                    },
+                    {
+                        "filenamePattern": "*.fbx"
+                    },
+                    {
+                        "filenamePattern": "*.obj"
+                    },
+                    {
+                        "filenamePattern": "*.stl"
+                    },
+                    {
+                        "filenamePattern": "*.ply"
+                    }
+                ]
+            },
+            {
+                "viewType": "3dviewer.editor",
+                "displayName": "3D Mesh Editor",
                 "selector": [
                     {
                         "filenamePattern": "*.3ds"
