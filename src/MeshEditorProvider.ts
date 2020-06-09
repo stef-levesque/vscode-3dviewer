@@ -299,7 +299,7 @@ export class MeshEditorProvider implements vscode.CustomReadonlyEditorProvider<M
      * Get the static HTML used for in our editor's webviews.
      */
     private getHtmlForWebview(webview: vscode.Webview, document: MeshEditorDocument): string {
-
+        const darkmode = vscode.window.activeColorTheme.kind == vscode.ColorThemeKind.Dark;
 
         let fileToLoad = document.uri.scheme === "file" ?
             document.uri.with({ scheme: 'vscode-resource' }) :
@@ -307,14 +307,11 @@ export class MeshEditorProvider implements vscode.CustomReadonlyEditorProvider<M
 
 
         // Local path to script and css for the webview
-        const scriptUri = webview.asWebviewUri(vscode.Uri.file(
-            path.join(this._context.extensionPath, 'media', 'editor', 'viewer.js')
-        ));
         const styleUri = webview.asWebviewUri(vscode.Uri.file(
             path.join(this._context.extensionPath, 'media', 'editor', 'css', 'main.css')
         ));
         const themeUri = webview.asWebviewUri(vscode.Uri.file(
-            path.join(this._context.extensionPath, 'media', 'editor', 'css', 'dark.css')
+            path.join(this._context.extensionPath, 'media', 'editor', 'css', darkmode ? 'dark.css' : 'light.css')
         ));
         const mediaUri = webview.asWebviewUri(vscode.Uri.file(
             path.join(this._context.extensionPath, 'media')
