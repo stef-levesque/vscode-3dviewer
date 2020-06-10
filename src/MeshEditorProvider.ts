@@ -124,7 +124,15 @@ export class MeshEditorProvider implements vscode.CustomReadonlyEditorProvider<M
         // Wait for the webview to be properly ready before we init
         webviewPanel.webview.onDidReceiveMessage(e => {
             if (e.type === 'ready') {
-                this.postMessage(webviewPanel, 'init', {});
+                const fileToLoad = document.uri.scheme === "file" ?
+                    document.uri.with({ scheme: 'vscode-resource' }) :
+                    document.uri;
+                let body = {
+                    path: fileToLoad.toString(),
+                    basename: path.basename(fileToLoad.fsPath),
+                    dirname: path.dirname(fileToLoad.toString())
+                }
+                this.postMessage(webviewPanel, 'loadFile', body);
             }
         });
     }
@@ -134,23 +142,6 @@ export class MeshEditorProvider implements vscode.CustomReadonlyEditorProvider<M
     private getMediaPath(scheme: string, mediaFile: string): vscode.Uri {
         return vscode.Uri.file(path.join(this._context.extensionPath, 'media', mediaFile))
             .with({ scheme: scheme });
-    }
-
-    private getSettings(uri: vscode.Uri): string {
-        let config = vscode.workspace.getConfiguration('3dviewer');
-        let initialData = {
-            fileToLoad: uri.toString(),
-            wireframe: config.get('wireframe', false),
-            background: config.get('background', '#8f8f8f'),
-            useEnvCube: config.get('useEnvCube', true),
-            boundingBox: config.get('boundingBox', false),
-            grid: config.get('grid', true),
-            gridSize: config.get('gridSize', 32),
-            near: config.get('near', 0.01),
-            far: config.get('far', 1000000),
-            limitFps: config.get('limitFps', 0)
-        }
-        return `<meta id="vscode-3dviewer-data" data-settings="${JSON.stringify(initialData).replace(/"/g, '&quot;')}">`
     }
 
     private getScripts(scheme: string, nonce?: string): string {
@@ -300,11 +291,6 @@ export class MeshEditorProvider implements vscode.CustomReadonlyEditorProvider<M
      */
     private getHtmlForWebview(webview: vscode.Webview, document: MeshEditorDocument): string {
         const darkmode = vscode.window.activeColorTheme.kind == vscode.ColorThemeKind.Dark;
-
-        let fileToLoad = document.uri.scheme === "file" ?
-            document.uri.with({ scheme: 'vscode-resource' }) :
-            document.uri;
-
 
         // Local path to script and css for the webview
         const styleUri = webview.asWebviewUri(vscode.Uri.file(

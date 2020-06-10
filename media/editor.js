@@ -164,11 +164,23 @@ if (hash.substr(1, 5) === 'file=') {
 
 }
 
-/*
-window.addEventListener( 'message', function ( event ) {
+window.addEventListener( 'message', function ( e ) {
+    const { type, body, requestId } = e.data;
+    switch (type) {
+        case 'loadFile':
+            {
+                editor.clear();
 
-    editor.clear();
-    editor.fromJSON( event.data );
-
-}, false );
-*/
+                if (!window.fileLoader) {
+                    window.fileLoader = new THREE.FileLoader();
+                    window.fileLoader.crossOrigin = '';
+                    window.fileLoader.setResponseType( 'arraybuffer' );
+                }
+                window.fileLoader.load(body.path, (data) => { 
+                    let file = new Blob([data]);
+                    file.name = body.basename;
+                    editor.loader.loadFile(file);
+                });
+            }
+    }
+});
