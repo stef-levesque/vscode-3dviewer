@@ -177,12 +177,9 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
      * Get the static HTML used for in our editor's webviews.
      */
     private getHtmlForWebview(webview: vscode.Webview, document: MeshViewerDocument): string {
-
-
-        let fileToLoad = document.uri.scheme === "file" ?
-            document.uri.with({ scheme: 'vscode-resource' }) :
+        const fileToLoad = document.uri.scheme === "file" ?
+            webview.asWebviewUri(vscode.Uri.file(document.uri.fsPath)) :
             document.uri;
-
 
         // Local path to script and css for the webview
         const scriptUri = webview.asWebviewUri(vscode.Uri.file(
