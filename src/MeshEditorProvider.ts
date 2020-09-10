@@ -125,9 +125,10 @@ export class MeshEditorProvider implements vscode.CustomReadonlyEditorProvider<M
         webviewPanel.webview.onDidReceiveMessage(e => {
             if (e.type === 'ready') {
                 const fileToLoad = document.uri.scheme === "file" ?
-                    document.uri.with({ scheme: 'vscode-resource' }) :
+                    webviewPanel.webview.asWebviewUri(vscode.Uri.file(document.uri.fsPath)) :
                     document.uri;
-                let body = {
+
+                const body = {
                     path: fileToLoad.toString(),
                     basename: path.basename(fileToLoad.fsPath),
                     dirname: path.dirname(fileToLoad.toString())
