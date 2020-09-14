@@ -121,6 +121,13 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
 
         webviewPanel.webview.onDidReceiveMessage(e => this.onMessage(document, e));
 
+        if(document.uri.scheme === 'file' && vscode.workspace.getConfiguration('3dviewer').get('hotReload', true)) {
+            const watcher = vscode.workspace.createFileSystemWatcher(document.uri.fsPath, true, false, true);
+
+            watcher.onDidChange(() => webviewPanel.webview.postMessage('modelRefresh'));
+            webviewPanel.onDidDispose(() => watcher.dispose());
+        }
+
         // Wait for the webview to be properly ready before we init
         webviewPanel.webview.onDidReceiveMessage(e => {
             if (e.type === 'ready') {
@@ -137,8 +144,8 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
     }
 
     private getSettings(uri: vscode.Uri): string {
-        let config = vscode.workspace.getConfiguration('3dviewer');
-        let initialData = {
+        const config = vscode.workspace.getConfiguration('3dviewer');
+        const initialData = {
             fileToLoad: uri.toString(),
             wireframe: config.get('wireframe', false),
             background: config.get('background', '#8f8f8f'),
@@ -148,7 +155,8 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
             gridSize: config.get('gridSize', 32),
             near: config.get('near', 0.01),
             far: config.get('far', 1000000),
-            limitFps: config.get('limitFps', 0)
+            limitFps: config.get('limitFps', 0),
+            hotReloadAutomatically: config.get('hotReloadAutomatically', false)
         }
         return `<meta id="vscode-3dviewer-data" data-settings="${JSON.stringify(initialData).replace(/"/g, '&quot;')}">`
     }

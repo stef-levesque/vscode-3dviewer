@@ -135,6 +135,16 @@
                     "type": "number",
                     "description": "Max fps (use 0 for no limit)",
                     "default": 0
+                },
+                "3dviewer.hotReload": {
+                    "type": "boolean",
+                    "description": "Enable hot reload mode for viewer",
+                    "default": true
+                },
+                "3dviewer.hotReloadAutomatically": {
+                    "type": "boolean",
+                    "description": "Enable this to reload models without the question popup",
+                    "default": false
                 }
             }
         }
