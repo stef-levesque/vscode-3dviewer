@@ -46,16 +46,18 @@ Use the [THREE.js editor](https://threejs.org/editor/) directly inside VSCode
 
 ## Configuration
 
-|Name                   |Type      |Description
-|-----------------------|----------|------------
-|`3dviewer.wireframe`   |`boolean` |Display mesh in wireframe mode
-|`3dviewer.background`  |`string`  |Set the default background color (e.g. '#8f8f8f')
-|`3dviewer.boundingBox` |`boolean` |Display a bounding box around the model
-|`3dviewer.grid`        |`boolean` |Display a grid at the origin
-|`3dviewer.gridSize`    |`number`  |Set the size of the grid
-|`3dviewer.near`        |`number`  |Set the near plane distance
-|`3dviewer.far`         |`number`  |Set the far plane distance
-|`3dviewer.limitFps`    |`number`  |Set the max fps (use 0 for no limit)
+|Name                             |Type      |Description
+|---------------------------------|----------|------------
+|`3dviewer.wireframe`             |`boolean` |Display mesh in wireframe mode
+|`3dviewer.background`            |`string`  |Set the default background color (e.g. '#8f8f8f')
+|`3dviewer.boundingBox`           |`boolean` |Display a bounding box around the model
+|`3dviewer.grid`                  |`boolean` |Display a grid at the origin
+|`3dviewer.gridSize`              |`number`  |Set the size of the grid
+|`3dviewer.near`                  |`number`  |Set the near plane distance
+|`3dviewer.far`                   |`number`  |Set the far plane distance
+|`3dviewer.limitFps`              |`number`  |Set the max fps (use 0 for no limit)
+|`3dviewer.hotReload`             |`boolean` |Enable hot reload mode for viewer
+|`3dviewer.hotReloadAutomatically`|`boolean` |Enable this to reload models without the question popup
 
 ## Contributing
 
