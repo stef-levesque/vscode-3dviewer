@@ -2,7 +2,7 @@
     "name": "vscode-3dviewer",
     "displayName": "3D Viewer for VSCode",
     "description": "Preview 3D models in VSCode",
-    "version": "0.1.0",
+    "version": "0.2.2",
     "publisher": "slevesque",
     "license": "LICENSE.md",
     "icon": "icon.png",
@@ -19,7 +19,7 @@
         "theme": "dark"
     },
     "engines": {
-        "vscode": "^1.46.0"
+        "vscode": "^1.49.0"
     },
     "keywords": [
         "vscode",
