@@ -48,37 +48,18 @@ mainScene.add(light2);
 mainScene.add(light1);
 
 const materials = generateMaterials(userSettings.useEnvCube);
-let current_material = 0;
-
-const effectController = {
-    hue: 0.0,
-    saturation: 0.8,
-    lightness: 0.1,
-    lhue: 0.04,
-    lsaturation: 1.0,
-    llightness: 0.5,
-    updateColor: () => {
-        if (mainScene.overrideMaterial) {
-            const color = new THREE.Color();
-            color.setHSL(this.hue, this.saturation, this.lightness);
-            mainScene.overrideMaterial.color = color;
-        }
-    }
-};
+let current_material = 'default';
+const effectController = { hue: 0.0, saturation: 0.8, lightness: 0.1 };
 
 const colorFolder = userMenu.addFolder('Material color');
-const hueMenu = colorFolder.add(effectController, 'hue', 0.0, 1.0).step(0.025);
-const saturationMenu = colorFolder.add(effectController, 'saturation', 0.0, 1.0).step(0.025);
-const lightnessMenu = colorFolder.add(effectController, 'lightness', 0.0, 1.0).step(0.025);
+const hueMenu = colorFolder.add(effectController, 'hue', 0.0, 1.0).step(0.025).onChange(() => updateColor());
+const saturationMenu = colorFolder.add(effectController, 'saturation', 0.0, 1.0).step(0.025).onChange(() => updateColor());
+const lightnessMenu = colorFolder.add(effectController, 'lightness', 0.0, 1.0).step(0.025).onChange(() => updateColor());
+const materialFolder = userMenu.addFolder('Materials');
 
-hueMenu.onChange(() => effectController.updateColor());
-saturationMenu.onChange(() => effectController.updateColor());
-lightnessMenu.onChange(() => effectController.updateColor());
-
-const matFolder = userMenu.addFolder('Materials');
 for (const mat in materials) {
-    effectController[mat] = createEffectHandler(mat);
-    matFolder.add(effectController, mat).name(mat);
+    effectController[mat] = () => onMaterialChanged(mat);
+    materialFolder.add(effectController, mat).name(mat);
 }
 
 animate();
@@ -95,6 +76,14 @@ function createModelLoader() {
         case 'stl': return new THREE.STLLoader();
         case 'ply': return new THREE.PLYLoader();
         default:    return new THREE.OBJLoader();
+    }
+}
+
+function updateColor() {
+    if (mainScene.overrideMaterial) {
+        const color = new THREE.Color();
+        color.setHSL(effectController.hue, effectController.saturation, effectController.lightness);
+        mainScene.overrideMaterial.color = color;
     }
 }
 
@@ -147,24 +136,22 @@ function removeFolder(name) {
     }
 }
 
-function createEffectHandler(id) {
-    return () => {
-        if (current_material != 0) {
-            const oldMaterial = materials[current_material];
-            oldMaterial.h = hueMenu.getValue();
-            oldMaterial.s = saturationMenu.getValue();
-            oldMaterial.l = lightnessMenu.getValue();
-        }
+function onMaterialChanged(id) {
+    if (current_material !== 'default') {
+        const oldMaterial = materials[current_material];
+        oldMaterial.h = hueMenu.getValue();
+        oldMaterial.s = saturationMenu.getValue();
+        oldMaterial.l = lightnessMenu.getValue();
+    }
 
-        current_material = id;
-        const mat = materials[id];
-        mainScene.overrideMaterial = mat.m;
-        onWireframeChange(userSettings.wireframe);
+    current_material = id;
+    const newMaterial = materials[id];
+    mainScene.overrideMaterial = newMaterial.m;
+    onWireframeChange(userSettings.wireframe);
 
-        hueMenu.setValue(mat.h);
-        saturationMenu.setValue(mat.s);
-        lightnessMenu.setValue(mat.l);
-    };
+    hueMenu.setValue(newMaterial.h);
+    saturationMenu.setValue(newMaterial.s);
+    lightnessMenu.setValue(newMaterial.l);
 }
 
 function createGrid() {
@@ -312,18 +299,15 @@ function render() {
 
 function generateMaterials(useEnvCube) {
     const path = 'textures/cube/Bridge2/';
-    const format = '.jpg';
     const urls = [
-        path + 'px' + format, path + 'nx' + format,
-        path + 'py' + format, path + 'ny' + format,
-        path + 'pz' + format, path + 'nz' + format
+        path + 'px.jpg', path + 'nx.jpg',
+        path + 'py.jpg', path + 'ny.jpg',
+        path + 'pz.jpg', path + 'nz.jpg'
     ];
 
-    const reflectionCube = new THREE.CubeTextureLoader().load(urls);
-    const refractionCube = reflectionCube.clone();
-
-    reflectionCube.format = THREE.RGBFormat;
-    refractionCube.format = THREE.RGBFormat;
+    const cubeTextureLoader = new THREE.CubeTextureLoader();
+    const reflectionCube = cubeTextureLoader.load(urls);
+    const refractionCube = cubeTextureLoader.load(urls);
     refractionCube.mapping = THREE.CubeRefractionMapping;
 
     if (useEnvCube) {
