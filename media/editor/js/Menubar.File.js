@@ -116,7 +116,7 @@ Menubar.File = function ( editor ) {
 
 		}
 
-		saveString( output, 'geometry.json' );
+		saveString( output, 'json' );
 
 	} );
 	options.add( option );
@@ -150,7 +150,7 @@ Menubar.File = function ( editor ) {
 
 		}
 
-		saveString( output, 'model.json' );
+		saveString( output, 'json' );
 
 	} );
 	options.add( option );
@@ -175,7 +175,7 @@ Menubar.File = function ( editor ) {
 
 		}
 
-		saveString( output, 'scene.json' );
+		saveString( output, 'json' );
 
 	} );
 	options.add( option );
@@ -195,7 +195,7 @@ Menubar.File = function ( editor ) {
 
 		exporter.parse( editor.scene, function ( result ) {
 
-			saveString( JSON.stringify( result, null, 2 ), 'scene.gltf' );
+			saveString( JSON.stringify( result, null, 2 ), 'gltf' );
 
 		} );
 
@@ -221,7 +221,7 @@ Menubar.File = function ( editor ) {
 
 		var exporter = new THREE.OBJExporter();
 
-		saveString( exporter.parse( object ), 'model.obj' );
+		saveString( exporter.parse( object ), 'obj' );
 
 	} );
 	options.add( option );
@@ -235,7 +235,7 @@ Menubar.File = function ( editor ) {
 
 		var exporter = new THREE.STLExporter();
 
-		saveString( exporter.parse( editor.scene ), 'model.stl' );
+		saveString( exporter.parse( editor.scene ), 'stl' );
 
 	} );
 	options.add( option );
@@ -372,10 +372,8 @@ Menubar.File = function ( editor ) {
 
 	}
 
-	function saveString( text, filename ) {
-
-		save( new Blob( [ text ], { type: 'text/plain' } ), filename );
-
+	function saveString( text, extension ) {
+        vscode.postMessage({ type: 'saveFile', text, extension })
 	}
 
 	return container;
