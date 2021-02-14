@@ -1,61 +1,11 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getNonce } from './util';
-import { Disposable, disposeAll } from './dispose';
-
-
-/**
- * Define the document (the data model) used for mesh files.
- */
-class MeshViewerDocument extends Disposable implements vscode.CustomDocument {
-
-    static async create(
-        uri: vscode.Uri,
-        backupId: string | undefined
-    ): Promise<MeshViewerDocument | PromiseLike<MeshViewerDocument>> {
-        // If we have a backup, read that. Otherwise read the resource from the workspace
-        const dataFile = typeof backupId === 'string' ? vscode.Uri.parse(backupId) : uri;
-        return new MeshViewerDocument(uri);
-    }
-
-    private readonly _uri: vscode.Uri;
-
-    private constructor(uri: vscode.Uri) {
-        super();
-        this._uri = uri;
-    }
-
-    public get uri(): vscode.Uri { return this._uri; }
-
-    private readonly _onDidDispose = this._register(new vscode.EventEmitter<void>());
-    /**
-     * Fired when the document is disposed of.
-     */
-    public readonly onDidDispose = this._onDidDispose.event;
-
-    private readonly _onDidChangeDocument = this._register(new vscode.EventEmitter<void>());
-    /**
-     * Fired to notify webviews that the document has changed.
-     */
-    public readonly onDidChangeContent = this._onDidChangeDocument.event;
-
-
-    /**
-     * Called by VS Code when there are no more references to the document.
-     * 
-     * This happens when all editors for it have been closed.
-     */
-    dispose(): void {
-        this._onDidDispose.fire();
-        super.dispose();
-    }
-}
-
+import { getNonce, WebviewCollection, MeshDocument, disposeAll } from './util';
 
 /**
  * Provider for Mesh viewers.
  */
-export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<MeshViewerDocument> {
+export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<MeshDocument> {
 
     public static register(context: vscode.ExtensionContext): vscode.Disposable {
         return vscode.window.registerCustomEditorProvider(
@@ -84,13 +34,12 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
 
     //#region CustomReadonlyEditorProvider
 
-    async openCustomDocument(
+    openCustomDocument(
         uri: vscode.Uri,
         openContext: { backupId?: string },
         _token: vscode.CancellationToken
-    ): Promise<MeshViewerDocument> {
-        const document = await MeshViewerDocument.create(uri, openContext.backupId);
-
+    ): MeshDocument {
+        const document = new MeshDocument(uri);
         const listeners: vscode.Disposable[] = [];
 
         listeners.push(document.onDidChangeContent(e => {
@@ -105,11 +54,11 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
         return document;
     }
 
-    async resolveCustomEditor(
-        document: MeshViewerDocument,
+    resolveCustomEditor(
+        document: MeshDocument,
         webviewPanel: vscode.WebviewPanel,
         _token: vscode.CancellationToken
-    ): Promise<void> {
+    ): void {
         // Add the webview to our internal set of active webviews
         this.webviews.add(document.uri, webviewPanel);
 
@@ -184,7 +133,7 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
     /**
      * Get the static HTML used for in our editor's webviews.
      */
-    private getHtmlForWebview(webview: vscode.Webview, document: MeshViewerDocument): string {
+    private getHtmlForWebview(webview: vscode.Webview, document: MeshDocument): string {
         const fileToLoad = document.uri.scheme === "file" ?
             webview.asWebviewUri(vscode.Uri.file(document.uri.fsPath)) :
             document.uri;
@@ -231,62 +180,18 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
             </html>`;
     }
 
-    private _requestId = 1;
     private readonly _callbacks = new Map<number, (response: any) => void>();
-
-    private postMessageWithResponse<R = unknown>(panel: vscode.WebviewPanel, type: string, body: any): Promise<R> {
-        const requestId = this._requestId++;
-        const p = new Promise<R>(resolve => this._callbacks.set(requestId, resolve));
-        panel.webview.postMessage({ type, requestId, body });
-        return p;
-    }
 
     private postMessage(panel: vscode.WebviewPanel, type: string, body: any): void {
         panel.webview.postMessage({ type, body });
     }
 
-    private onMessage(document: MeshViewerDocument, message: any) {
+    private onMessage(document: MeshDocument, message: any) {
         switch (message.type) {
             case 'response':
                 const callback = this._callbacks.get(message.requestId);
                 callback?.(message.body);
                 return;
         }
-    }
-}
-
-
-/**
- * Tracks all webviews.
- */
-class WebviewCollection {
-
-    private readonly _webviews = new Set<{
-        readonly resource: string;
-        readonly webviewPanel: vscode.WebviewPanel;
-    }>();
-
-    /**
-     * Get all known webviews for a given uri.
-     */
-    public *get(uri: vscode.Uri): Iterable<vscode.WebviewPanel> {
-        const key = uri.toString();
-        for (const entry of this._webviews) {
-            if (entry.resource === key) {
-                yield entry.webviewPanel;
-            }
-        }
-    }
-
-    /**
-     * Add a new webview to the collection.
-     */
-    public add(uri: vscode.Uri, webviewPanel: vscode.WebviewPanel) {
-        const entry = { resource: uri.toString(), webviewPanel };
-        this._webviews.add(entry);
-
-        webviewPanel.onDidDispose(() => {
-            this._webviews.delete(entry);
-        });
     }
 }
