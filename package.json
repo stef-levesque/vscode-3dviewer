@@ -25,6 +25,7 @@
         "vscode",
         "3d",
         "mesh",
+        "model",
         "viewer",
         "webgl",
         "3ds",
@@ -34,6 +35,11 @@
         "obj",
         "stl"
     ],
+    "capabilities": {
+        "untrustedWorkspaces": {
+            "supported": false
+        }
+    },
     "categories": [
         "Other"
     ],
