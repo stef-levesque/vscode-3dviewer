@@ -32,7 +32,8 @@
         "Collada",
         "fbx",
         "obj",
-        "stl"
+        "stl",
+        "ply"
     ],
     "categories": [
         "Other"
