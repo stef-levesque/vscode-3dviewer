@@ -7,12 +7,13 @@ Preview 3D models in VSCode
 ## Main Features
 
 ### Model Viewer
-Support multiple formats:
+Supported formats:
 * `3ds` 3D Studio Max
 * `dae` Collada digital asset exchange
 * `fbx` Filmbox
 * `stl` STereo-Lithography
 * `obj` Wavefront OBJ
+* `ply` Polygon File Format
 
 ![sponza](images/sponza.png)  
   
