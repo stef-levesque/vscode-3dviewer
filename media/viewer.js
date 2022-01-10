@@ -5,23 +5,24 @@ const fpsLimit = userSettings.limitFps;
 const userMenu = new dat.GUI();
 const editorScene = new THREE.Scene();
 const mainScene = new THREE.Scene();
+const cubeTextureLoader = new THREE.CubeTextureLoader().setPath('textures/cube/');
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, userSettings.near, userSettings.far);
 const renderingFolder = userMenu.addFolder('Rendering');
 
 renderingFolder.add(camera, 'near').onChange(() => camera.updateProjectionMatrix());
 renderingFolder.add(camera, 'far').onChange(() => camera.updateProjectionMatrix());
-renderingFolder.addColor(userSettings, 'background').onChange(onBackgroundChange);
-renderingFolder.add(userSettings, 'wireframe').onChange(onWireframeChange);
+renderingFolder.addColor(userSettings, 'backgroundColor').onChange(onBackgroundColorChange);
+renderingFolder.add(userSettings, 'backgroundImage', [ 'none', 'Bridge2', 'MilkyWay', 'Pisa' ]).onChange(onBackgroundImageChange);
+renderingFolder.add(userSettings, 'wireframe').onChange(onWireframeToggle);
 renderingFolder.add(userSettings, 'grid').name('show grid').onChange((value) => { editorScene.getObjectByName('grid').visible = value; });
 renderingFolder.add(userSettings, 'gridSize').min(1).max(100).step(1).onChange(() => { editorScene.remove(editorScene.getObjectByName('grid')); createGrid(); });
-editorScene.background = new THREE.Color(userSettings.background);
 
+onBackgroundImageChange(userSettings.backgroundImage);
 createGrid();
 
 const renderer = new THREE.WebGLRenderer({alpha: true});
-renderer.autoClearColor = !userSettings.useEnvCube;
-renderer.autoClearDepth = false;
+renderer.autoClear = false;
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
@@ -47,22 +48,94 @@ light2.position.set(0, 1, 0);
 mainScene.add(light2);
 mainScene.add(light1);
 
-const materials = generateMaterials(userSettings.useEnvCube);
+const materials = generateMaterials();
 let current_material = 'default';
 const effectController = { hue: 0.0, saturation: 0.8, lightness: 0.1 };
 
 const colorFolder = userMenu.addFolder('Material color');
-const hueMenu = colorFolder.add(effectController, 'hue', 0.0, 1.0).step(0.025).onChange(() => updateColor());
-const saturationMenu = colorFolder.add(effectController, 'saturation', 0.0, 1.0).step(0.025).onChange(() => updateColor());
-const lightnessMenu = colorFolder.add(effectController, 'lightness', 0.0, 1.0).step(0.025).onChange(() => updateColor());
+const hueMenu = colorFolder.add(effectController, 'hue', 0.0, 1.0).step(0.025).onChange(onMainObjectMaterialColorChange);
+const saturationMenu = colorFolder.add(effectController, 'saturation', 0.0, 1.0).step(0.025).onChange(onMainObjectMaterialColorChange);
+const lightnessMenu = colorFolder.add(effectController, 'lightness', 0.0, 1.0).step(0.025).onChange(onMainObjectMaterialColorChange);
 const materialFolder = userMenu.addFolder('Materials');
 
 for (const mat in materials) {
-    effectController[mat] = () => onMaterialChanged(mat);
+    effectController[mat] = () => onMainObjectMaterialChange(mat);
     materialFolder.add(effectController, mat).name(mat);
 }
 
 animate();
+
+
+function onMainObjectMaterialColorChange() {
+    if (mainScene.overrideMaterial) {
+        const color = new THREE.Color();
+        color.setHSL(effectController.hue, effectController.saturation, effectController.lightness);
+        mainScene.overrideMaterial.color = color;
+    }
+}
+
+function onMainObjectMaterialChange(id) {
+    if (current_material !== 'default') {
+        const oldMaterial = materials[current_material];
+        oldMaterial.h = hueMenu.getValue();
+        oldMaterial.s = saturationMenu.getValue();
+        oldMaterial.l = lightnessMenu.getValue();
+    }
+
+    current_material = id;
+    const newMaterial = materials[id];
+    mainScene.overrideMaterial = newMaterial.m;
+    onWireframeToggle(userSettings.wireframe);
+
+    hueMenu.setValue(newMaterial.h);
+    saturationMenu.setValue(newMaterial.s);
+    lightnessMenu.setValue(newMaterial.l);
+}
+
+function onWireframeToggle(wireframe) {
+    if (mainScene.overrideMaterial) {
+        mainScene.overrideMaterial.wireframe = wireframe;
+    }
+
+    const object = mainScene.getObjectByName('MainObject');
+    if (object) {
+        object.traverse(child => {
+            if (child['material']) {
+                const material = child['material'];
+
+                if (Array.isArray(material)) {
+                    for (const m of material) {
+                        m.wireframe = wireframe;
+                    }
+                } else {
+                    material.wireframe = wireframe;
+                }
+            }
+        });
+    }
+}
+
+function onBackgroundColorChange(color) {
+    editorScene.background = new THREE.Color(color);
+}
+
+function onBackgroundImageChange(name) {
+    if(name !== 'none') {
+        editorScene.background = loadCubeTexture(name);
+    }else{
+        onBackgroundColorChange(userSettings.backgroundColor);
+    }
+}
+
+
+function loadCubeTexture(name) {
+    const extension = name === 'Pisa' ? '.png' : '.jpg';
+    return cubeTextureLoader.load([
+        name + '/px' + extension, name + '/nx' + extension,
+        name + '/py' + extension, name + '/ny' + extension,
+        name + '/pz' + extension, name + '/nz' + extension
+    ]);
+}
 
 function createModelLoader() {
     const fileToLoad = userSettings.fileToLoad;
@@ -76,14 +149,6 @@ function createModelLoader() {
         case 'stl': return new THREE.STLLoader();
         case 'ply': return new THREE.PLYLoader();
         default:    return new THREE.OBJLoader();
-    }
-}
-
-function updateColor() {
-    if (mainScene.overrideMaterial) {
-        const color = new THREE.Color();
-        color.setHSL(effectController.hue, effectController.saturation, effectController.lightness);
-        mainScene.overrideMaterial.color = color;
     }
 }
 
@@ -134,24 +199,6 @@ function removeFolder(name) {
         delete userMenu.__folders[name];
         userMenu.onResize();
     }
-}
-
-function onMaterialChanged(id) {
-    if (current_material !== 'default') {
-        const oldMaterial = materials[current_material];
-        oldMaterial.h = hueMenu.getValue();
-        oldMaterial.s = saturationMenu.getValue();
-        oldMaterial.l = lightnessMenu.getValue();
-    }
-
-    current_material = id;
-    const newMaterial = materials[id];
-    mainScene.overrideMaterial = newMaterial.m;
-    onWireframeChange(userSettings.wireframe);
-
-    hueMenu.setValue(newMaterial.h);
-    saturationMenu.setValue(newMaterial.s);
-    lightnessMenu.setValue(newMaterial.l);
 }
 
 function createGrid() {
@@ -231,7 +278,7 @@ function loadModel() {
             }
         }
     
-        onWireframeChange(userSettings.wireframe);
+        onWireframeToggle(userSettings.wireframe);
     
     }, onProgress, xhr => console.log(xhr.toString()));
 }
@@ -250,34 +297,6 @@ function populateModelFolder(baseObject, modelFolder, property) {
     }
 }
 
-function onWireframeChange(wireframe) {
-    if (mainScene.overrideMaterial) {
-        mainScene.overrideMaterial.wireframe = wireframe;
-    }
-
-    const object = mainScene.getObjectByName('MainObject');
-    if (object) {
-        object.traverse(child => {
-            if (child['material']) {
-                const material = child['material'];
-
-                if (Array.isArray(material)) {
-                    for (const m of material) {
-                        m.wireframe = wireframe;
-                    }
-                } else {
-                    material.wireframe = wireframe;
-                }
-            }
-        });
-    }
-}
-
-function onBackgroundChange(color) {
-    renderer.autoClearColor = true;
-    editorScene.background = new THREE.Color(color);
-}
-
 function animate() {
     setTimeout(() => {
         requestAnimationFrame(animate);
@@ -293,26 +312,16 @@ function animate() {
 }
 
 function render() {
+    renderer.clear();
     renderer.render(editorScene, camera);
+    renderer.clearDepth();
     renderer.render(mainScene, camera);
 }
 
-function generateMaterials(useEnvCube) {
-    const path = 'textures/cube/Bridge2/';
-    const urls = [
-        path + 'px.jpg', path + 'nx.jpg',
-        path + 'py.jpg', path + 'ny.jpg',
-        path + 'pz.jpg', path + 'nz.jpg'
-    ];
-
-    const cubeTextureLoader = new THREE.CubeTextureLoader();
-    const reflectionCube = cubeTextureLoader.load(urls);
-    const refractionCube = cubeTextureLoader.load(urls);
+function generateMaterials() {
+    const reflectionCube = loadCubeTexture('Bridge2');
+    const refractionCube = loadCubeTexture('Bridge2');
     refractionCube.mapping = THREE.CubeRefractionMapping;
-
-    if (useEnvCube) {
-        editorScene.background = reflectionCube;
-    }
 
     const texture = new THREE.TextureLoader().load('textures/UV_Grid_Sm.jpg');
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
