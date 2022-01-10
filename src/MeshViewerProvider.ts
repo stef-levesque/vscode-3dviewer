@@ -121,6 +121,7 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
             this.getMediaPath(scheme, 'examples/js/loaders/FBXLoader.js'),
             this.getMediaPath(scheme, 'examples/js/loaders/TDSLoader.js'),
             this.getMediaPath(scheme, 'examples/js/loaders/OBJLoader.js'),
+            this.getMediaPath(scheme, 'examples/js/loaders/MTLLoader.js'),
             this.getMediaPath(scheme, 'examples/js/loaders/STLLoader.js'),
             this.getMediaPath(scheme, 'examples/js/loaders/PLYLoader.js'),
             this.getMediaPath(scheme, 'viewer.js')
