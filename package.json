@@ -101,9 +101,15 @@
                     "description": "Display mesh in wireframe mode",
                     "default": false
                 },
-                "3dviewer.background": {
+                "3dviewer.backgroundImage": {
                     "type": "string",
-                    "description": "Default color for the background",
+                    "description": "Default image for the background. When set to 'none' the backgroundColor gets used.",
+                    "default": "Bridge2",
+                    "enum": [ "none", "Bridge2", "MilkyWay", "Pisa" ]
+                },
+                "3dviewer.backgroundColor": {
+                    "type": "string",
+                    "description": "Default color for the background. Only used when backgroundImage is set to 'none'",
                     "default": "#8f8f8f"
                 },
                 "3dviewer.boundingBox": {
