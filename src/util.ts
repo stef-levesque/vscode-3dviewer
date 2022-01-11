@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 export function getNonce() {
     let text = '';
@@ -16,6 +17,16 @@ export function disposeAll(disposables: vscode.Disposable[]) {
             item.dispose();
         }
     }
+}
+
+export function getThreeJSPath(file: string, context: vscode.ExtensionContext) {
+    return vscode.Uri.file(path.join(context.extensionPath, 'node_modules/three', file))
+                 .with({ scheme: 'vscode-resource' });
+}
+
+export function getMediaPath(file: string, context: vscode.ExtensionContext): vscode.Uri {
+    return vscode.Uri.file(path.join(context.extensionPath, 'media', file))
+                 .with({ scheme: 'vscode-resource' });
 }
 
 /**
