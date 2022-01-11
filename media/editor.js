@@ -1,6 +1,6 @@
 // VSCode webview doesn't support modal window
-window.alert = top.alert;
-window.confirm = top.confirm;
+//window.alert = top.alert;
+//window.confirm = top.confirm;
 
 window.URL = window.URL || window.webkitURL;
 window.BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder;

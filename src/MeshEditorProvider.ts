@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getNonce, WebviewCollection, MeshDocument, disposeAll } from './util';
+import { getNonce, WebviewCollection, MeshDocument, disposeAll, getThreeJSPath, getMediaPath } from './util';
 
 /**
  * Provider for Mesh viewers.
@@ -59,22 +59,24 @@ export class MeshEditorProvider implements vscode.CustomReadonlyEditorProvider<M
         webviewPanel: vscode.WebviewPanel,
         _token: vscode.CancellationToken
     ): void {
+        const webview = webviewPanel.webview;
+
         // Add the webview to our internal set of active webviews
         this.webviews.add(document.uri, webviewPanel);
 
         // Setup initial content for the webview
-        webviewPanel.webview.options = {
+        webview.options = {
             enableScripts: true,
         };
-        webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview, document);
+        webview.html = this.getHtmlForWebview(webview, document);
 
-        webviewPanel.webview.onDidReceiveMessage(e => this.onMessage(document, e));
+        webview.onDidReceiveMessage(e => this.onMessage(document, e));
 
         // Wait for the webview to be properly ready before we init
-        webviewPanel.webview.onDidReceiveMessage(e => {
+        webview.onDidReceiveMessage(e => {
             if (e.type === 'ready') {
                 const fileToLoad = document.uri.scheme === "file" ?
-                    webviewPanel.webview.asWebviewUri(vscode.Uri.file(document.uri.fsPath)) :
+                    webview.asWebviewUri(vscode.Uri.file(document.uri.fsPath)) :
                     document.uri;
 
                 const body = {
@@ -89,151 +91,143 @@ export class MeshEditorProvider implements vscode.CustomReadonlyEditorProvider<M
 
     //#endregion
 
-    private getMediaPath(scheme: string, mediaFile: string): vscode.Uri {
-        return vscode.Uri.file(path.join(this._context.extensionPath, 'media', mediaFile))
-            .with({ scheme: scheme });
-    }
-
-    private getScripts(scheme: string, nonce?: string): string {
+    private getScripts(scheme: string, nonce: string): string {
+        const ctx = this._context;
         const scripts = [
-            this.getMediaPath(scheme, 'build/three.js'),
-            this.getMediaPath(scheme, 'examples/js/libs/system.min.js'),
-            this.getMediaPath(scheme, 'examples/js/controls/EditorControls.js'),
-            this.getMediaPath(scheme, 'examples/js/controls/TransformControls.js'),
-            this.getMediaPath(scheme, 'examples/js/libs/jszip.min.js'),
-            this.getMediaPath(scheme, 'examples/js/libs/inflate.min.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/AMFLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/AWDLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/BabylonLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/ColladaLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/FBXLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/GLTFLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/KMZLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/MD2Loader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/OBJLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/MTLLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/PlayCanvasLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/PLYLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/STLLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/TGALoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/TDSLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/UTF8Loader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/VRMLLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/VTKLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/ctm/lzma.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/ctm/ctm.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/ctm/CTMLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/exporters/OBJExporter.js'),
-            this.getMediaPath(scheme, 'examples/js/exporters/GLTFExporter.js'),
-            this.getMediaPath(scheme, 'examples/js/exporters/STLExporter.js'),
-            this.getMediaPath(scheme, 'examples/js/renderers/Projector.js'),
-            this.getMediaPath(scheme, 'examples/js/renderers/CanvasRenderer.js'),
-            this.getMediaPath(scheme, 'examples/js/renderers/RaytracingRenderer.js'),
-            this.getMediaPath(scheme, 'examples/js/renderers/SoftwareRenderer.js'),
-            this.getMediaPath(scheme, 'examples/js/renderers/SVGRenderer.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/codemirror/codemirror.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/codemirror/mode/javascript.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/codemirror/mode/glsl.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/esprima.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/jsonlint.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/glslprep.min.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/codemirror/addon/dialog.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/codemirror/addon/show-hint.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/codemirror/addon/tern.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/acorn/acorn.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/acorn/acorn_loose.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/acorn/walk.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/ternjs/polyfill.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/ternjs/signal.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/ternjs/tern.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/ternjs/def.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/ternjs/comment.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/ternjs/infer.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/ternjs/doc_comment.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/tern-threejs/threejs.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/signals.min.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/ui.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/ui.three.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/app.js'),
-            this.getMediaPath(scheme, 'editor/js/Player.js'),
-            this.getMediaPath(scheme, 'editor/js/Script.js'),
-            this.getMediaPath(scheme, 'examples/js/vr/WebVR.js'),
-            this.getMediaPath(scheme, 'editor/js/Storage.js'),
-            this.getMediaPath(scheme, 'editor/js/Editor.js'),
-            //this.getMediaPath(scheme, 'editor/js/Config.js'),
-            this.getMediaPath(scheme, 'editor/js/Config-MemStorage.js'),
-            this.getMediaPath(scheme, 'editor/js/History.js'),
-            this.getMediaPath(scheme, 'editor/js/Loader.js'),
-            this.getMediaPath(scheme, 'editor/js/Menubar.js'),
-            this.getMediaPath(scheme, 'editor/js/Menubar.File.js'),
-            this.getMediaPath(scheme, 'editor/js/Menubar.Edit.js'),
-            this.getMediaPath(scheme, 'editor/js/Menubar.Add.js'),
-            this.getMediaPath(scheme, 'editor/js/Menubar.Play.js'),
-            this.getMediaPath(scheme, 'editor/js/Menubar.Examples.js'),
-            this.getMediaPath(scheme, 'editor/js/Menubar.Help.js'),
-            this.getMediaPath(scheme, 'editor/js/Menubar.Status.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Scene.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Project.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Settings.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Properties.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Object.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Geometry.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Geometry.Geometry.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Geometry.BufferGeometry.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Geometry.Modifiers.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Geometry.BoxGeometry.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Geometry.CircleGeometry.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Geometry.CylinderGeometry.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Geometry.IcosahedronGeometry.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Geometry.PlaneGeometry.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Geometry.SphereGeometry.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Geometry.TorusGeometry.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Geometry.TorusKnotGeometry.js'),
-            this.getMediaPath(scheme, 'examples/js/geometries/TeapotBufferGeometry.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Geometry.TeapotBufferGeometry.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Geometry.LatheGeometry.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Material.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Animation.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.Script.js'),
-            this.getMediaPath(scheme, 'editor/js/Sidebar.History.js'),
-            this.getMediaPath(scheme, 'editor/js/Toolbar.js'),
-            this.getMediaPath(scheme, 'editor/js/Viewport.js'),
-            this.getMediaPath(scheme, 'editor/js/Viewport.Info.js'),
-            this.getMediaPath(scheme, 'editor/js/Command.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/AddObjectCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/RemoveObjectCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/MoveObjectCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/SetPositionCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/SetRotationCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/SetScaleCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/SetValueCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/SetUuidCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/SetColorCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/SetGeometryCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/SetGeometryValueCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/MultiCmdsCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/AddScriptCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/RemoveScriptCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/SetScriptValueCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/SetMaterialCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/SetMaterialValueCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/SetMaterialColorCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/SetMaterialMapCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/commands/SetSceneCommand.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/html2canvas.js'),
-            this.getMediaPath(scheme, 'editor/js/libs/three.html.js'),
-            this.getMediaPath(scheme, 'editor.js'),
+            getThreeJSPath('build/three.js', ctx),
+            getThreeJSPath('examples/js/libs/system.min.js', ctx),
+            getThreeJSPath('examples/js/controls/EditorControls.js', ctx),
+            getThreeJSPath('examples/js/controls/TransformControls.js', ctx),
+            getThreeJSPath('examples/js/libs/jszip.min.js', ctx),
+            getThreeJSPath('examples/js/libs/inflate.min.js', ctx),
+            getThreeJSPath('examples/js/loaders/AMFLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/AWDLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/BabylonLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/ColladaLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/FBXLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/GLTFLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/KMZLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/MD2Loader.js', ctx),
+            getThreeJSPath('examples/js/loaders/OBJLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/MTLLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/PlayCanvasLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/PLYLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/STLLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/TGALoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/TDSLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/UTF8Loader.js', ctx),
+            getThreeJSPath('examples/js/loaders/VRMLLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/VTKLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/ctm/lzma.js', ctx),
+            getThreeJSPath('examples/js/loaders/ctm/ctm.js', ctx),
+            getThreeJSPath('examples/js/loaders/ctm/CTMLoader.js', ctx),
+            getThreeJSPath('examples/js/exporters/OBJExporter.js', ctx),
+            getThreeJSPath('examples/js/exporters/GLTFExporter.js', ctx),
+            getThreeJSPath('examples/js/exporters/STLExporter.js', ctx),
+            getThreeJSPath('examples/js/renderers/Projector.js', ctx),
+            getThreeJSPath('examples/js/renderers/CanvasRenderer.js', ctx),
+            getThreeJSPath('examples/js/renderers/RaytracingRenderer.js', ctx),
+            getThreeJSPath('examples/js/renderers/SoftwareRenderer.js', ctx),
+            getThreeJSPath('examples/js/renderers/SVGRenderer.js', ctx),
+            getThreeJSPath('examples/js/vr/WebVR.js', ctx),
+            getThreeJSPath('examples/js/geometries/TeapotBufferGeometry.js', ctx),
+
+            getMediaPath('editor/js/libs/codemirror/codemirror.js', ctx),
+            getMediaPath('editor/js/libs/codemirror/mode/javascript.js', ctx),
+            getMediaPath('editor/js/libs/codemirror/mode/glsl.js', ctx),
+            getMediaPath('editor/js/libs/esprima.js', ctx),
+            getMediaPath('editor/js/libs/jsonlint.js', ctx),
+            getMediaPath('editor/js/libs/glslprep.min.js', ctx),
+            getMediaPath('editor/js/libs/codemirror/addon/dialog.js', ctx),
+            getMediaPath('editor/js/libs/codemirror/addon/show-hint.js', ctx),
+            getMediaPath('editor/js/libs/codemirror/addon/tern.js', ctx),
+            getMediaPath('editor/js/libs/acorn/acorn.js', ctx),
+            getMediaPath('editor/js/libs/acorn/acorn_loose.js', ctx),
+            getMediaPath('editor/js/libs/acorn/walk.js', ctx),
+            getMediaPath('editor/js/libs/ternjs/polyfill.js', ctx),
+            getMediaPath('editor/js/libs/ternjs/signal.js', ctx),
+            getMediaPath('editor/js/libs/ternjs/tern.js', ctx),
+            getMediaPath('editor/js/libs/ternjs/def.js', ctx),
+            getMediaPath('editor/js/libs/ternjs/comment.js', ctx),
+            getMediaPath('editor/js/libs/ternjs/infer.js', ctx),
+            getMediaPath('editor/js/libs/ternjs/doc_comment.js', ctx),
+            getMediaPath('editor/js/libs/tern-threejs/threejs.js', ctx),
+            getMediaPath('editor/js/libs/signals.min.js', ctx),
+            getMediaPath('editor/js/libs/ui.js', ctx),
+            getMediaPath('editor/js/libs/ui.three.js', ctx),
+            getMediaPath('editor/js/libs/app.js', ctx),
+            getMediaPath('editor/js/Player.js', ctx),
+            getMediaPath('editor/js/Script.js', ctx),
+            getMediaPath('editor/js/Storage.js', ctx),
+            getMediaPath('editor/js/Editor.js', ctx),
+            //getMediaPath('editor/js/Config.js', ctx),
+            getMediaPath('editor/js/Config-MemStorage.js', ctx),
+            getMediaPath('editor/js/History.js', ctx),
+            getMediaPath('editor/js/Loader.js', ctx),
+            getMediaPath('editor/js/Menubar.js', ctx),
+            getMediaPath('editor/js/Menubar.File.js', ctx),
+            getMediaPath('editor/js/Menubar.Edit.js', ctx),
+            getMediaPath('editor/js/Menubar.Add.js', ctx),
+            getMediaPath('editor/js/Menubar.Play.js', ctx),
+            getMediaPath('editor/js/Menubar.Examples.js', ctx),
+            getMediaPath('editor/js/Menubar.Help.js', ctx),
+            getMediaPath('editor/js/Menubar.Status.js', ctx),
+            getMediaPath('editor/js/Sidebar.js', ctx),
+            getMediaPath('editor/js/Sidebar.Scene.js', ctx),
+            getMediaPath('editor/js/Sidebar.Project.js', ctx),
+            getMediaPath('editor/js/Sidebar.Settings.js', ctx),
+            getMediaPath('editor/js/Sidebar.Properties.js', ctx),
+            getMediaPath('editor/js/Sidebar.Object.js', ctx),
+            getMediaPath('editor/js/Sidebar.Geometry.js', ctx),
+            getMediaPath('editor/js/Sidebar.Geometry.Geometry.js', ctx),
+            getMediaPath('editor/js/Sidebar.Geometry.BufferGeometry.js', ctx),
+            getMediaPath('editor/js/Sidebar.Geometry.Modifiers.js', ctx),
+            getMediaPath('editor/js/Sidebar.Geometry.BoxGeometry.js', ctx),
+            getMediaPath('editor/js/Sidebar.Geometry.CircleGeometry.js', ctx),
+            getMediaPath('editor/js/Sidebar.Geometry.CylinderGeometry.js', ctx),
+            getMediaPath('editor/js/Sidebar.Geometry.IcosahedronGeometry.js', ctx),
+            getMediaPath('editor/js/Sidebar.Geometry.PlaneGeometry.js', ctx),
+            getMediaPath('editor/js/Sidebar.Geometry.SphereGeometry.js', ctx),
+            getMediaPath('editor/js/Sidebar.Geometry.TorusGeometry.js', ctx),
+            getMediaPath('editor/js/Sidebar.Geometry.TorusKnotGeometry.js', ctx),
+            getMediaPath('editor/js/Sidebar.Geometry.TeapotBufferGeometry.js', ctx),
+            getMediaPath('editor/js/Sidebar.Geometry.LatheGeometry.js', ctx),
+            getMediaPath('editor/js/Sidebar.Material.js', ctx),
+            getMediaPath('editor/js/Sidebar.Animation.js', ctx),
+            getMediaPath('editor/js/Sidebar.Script.js', ctx),
+            getMediaPath('editor/js/Sidebar.History.js', ctx),
+            getMediaPath('editor/js/Toolbar.js', ctx),
+            getMediaPath('editor/js/Viewport.js', ctx),
+            getMediaPath('editor/js/Viewport.Info.js', ctx),
+            getMediaPath('editor/js/Command.js', ctx),
+            getMediaPath('editor/js/commands/AddObjectCommand.js', ctx),
+            getMediaPath('editor/js/commands/RemoveObjectCommand.js', ctx),
+            getMediaPath('editor/js/commands/MoveObjectCommand.js', ctx),
+            getMediaPath('editor/js/commands/SetPositionCommand.js', ctx),
+            getMediaPath('editor/js/commands/SetRotationCommand.js', ctx),
+            getMediaPath('editor/js/commands/SetScaleCommand.js', ctx),
+            getMediaPath('editor/js/commands/SetValueCommand.js', ctx),
+            getMediaPath('editor/js/commands/SetUuidCommand.js', ctx),
+            getMediaPath('editor/js/commands/SetColorCommand.js', ctx),
+            getMediaPath('editor/js/commands/SetGeometryCommand.js', ctx),
+            getMediaPath('editor/js/commands/SetGeometryValueCommand.js', ctx),
+            getMediaPath('editor/js/commands/MultiCmdsCommand.js', ctx),
+            getMediaPath('editor/js/commands/AddScriptCommand.js', ctx),
+            getMediaPath('editor/js/commands/RemoveScriptCommand.js', ctx),
+            getMediaPath('editor/js/commands/SetScriptValueCommand.js', ctx),
+            getMediaPath('editor/js/commands/SetMaterialCommand.js', ctx),
+            getMediaPath('editor/js/commands/SetMaterialValueCommand.js', ctx),
+            getMediaPath('editor/js/commands/SetMaterialColorCommand.js', ctx),
+            getMediaPath('editor/js/commands/SetMaterialMapCommand.js', ctx),
+            getMediaPath('editor/js/commands/SetSceneCommand.js', ctx),
+            getMediaPath('editor/js/libs/html2canvas.js', ctx),
+            getMediaPath('editor/js/libs/three.html.js', ctx),
+            getMediaPath('editor.js', ctx)
         ];
-        if (nonce !== undefined) {
-            return scripts
-                .map(source => `<script nonce="${nonce}" src="${source}"></script>`)
-                .join('\n');
-        } else {
-            return scripts
-                .map(source => `<script src="${source}"></script>`)
-                .join('\n');
-        }
+
+        return scripts
+            .map(source => `<script nonce="${nonce}" src="${source}"></script>`)
+            .join('\n');
     }
 
     /**

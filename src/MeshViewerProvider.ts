@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getNonce, WebviewCollection, MeshDocument, disposeAll } from './util';
+import { getNonce, WebviewCollection, MeshDocument, disposeAll, getThreeJSPath, getMediaPath } from './util';
 
 /**
  * Provider for Mesh viewers.
@@ -87,11 +87,6 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
 
     //#endregion
 
-    private getMediaPath(scheme: string, mediaFile: string): vscode.Uri {
-        return vscode.Uri.file(path.join(this._context.extensionPath, 'media', mediaFile))
-            .with({ scheme: scheme });
-    }
-
     private getSettings(uri: vscode.Uri): string {
         const config = vscode.workspace.getConfiguration('3dviewer');
         const initialData = {
@@ -110,20 +105,21 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
         return `<meta id="vscode-3dviewer-data" data-settings="${JSON.stringify(initialData).replace(/"/g, '&quot;')}">`
     }
 
-    private getScripts(scheme: string, nonce: string): string {
+    private getScripts(nonce: string): string {
+        const ctx = this._context;
         const scripts = [
-            this.getMediaPath(scheme, 'build/three.js'),
-            this.getMediaPath(scheme, 'examples/js/libs/inflate.min.js'),
-            this.getMediaPath(scheme, 'examples/js/libs/dat.gui.min.js'),
-            this.getMediaPath(scheme, 'examples/js/controls/OrbitControls.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/LoaderSupport.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/ColladaLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/FBXLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/TDSLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/OBJLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/STLLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/PLYLoader.js'),
-            this.getMediaPath(scheme, 'viewer.js')
+            getThreeJSPath('build/three.js', this._context),
+            getThreeJSPath('examples/js/libs/inflate.min.js', ctx),
+            getThreeJSPath('examples/js/libs/dat.gui.min.js', ctx),
+            getThreeJSPath('examples/js/controls/OrbitControls.js', ctx),
+            getThreeJSPath('examples/js/loaders/LoaderSupport.js', ctx),
+            getThreeJSPath('examples/js/loaders/ColladaLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/FBXLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/TDSLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/OBJLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/STLLoader.js', ctx),
+            getThreeJSPath('examples/js/loaders/PLYLoader.js', ctx),
+            getMediaPath('viewer.js', ctx)
         ];
         return scripts
             .map(source => `<script nonce="${nonce}" src="${source}"></script>`)
@@ -139,9 +135,6 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
             document.uri;
 
         // Local path to script and css for the webview
-        const scriptUri = webview.asWebviewUri(vscode.Uri.file(
-            path.join(this._context.extensionPath, 'media', 'viewer.js')
-        ));
         const styleUri = webview.asWebviewUri(vscode.Uri.file(
             path.join(this._context.extensionPath, 'media', 'viewer.css')
         ));
@@ -175,7 +168,7 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
                 <title>3D Mesh Viewer</title>
             </head>
             <body>
-                ${this.getScripts('vscode-resource', nonce)}
+                ${this.getScripts(nonce)}
             </body>
             </html>`;
     }
