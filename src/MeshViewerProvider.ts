@@ -21,7 +21,7 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
             });
     }
 
-    private static readonly viewType = '3dviewer.viewer';
+    public static readonly viewType = '3dviewer.viewer';
 
     /**
      * Tracks all known webviews
