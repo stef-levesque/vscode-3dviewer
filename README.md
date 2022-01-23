@@ -37,12 +37,12 @@ Use the [THREE.js editor](https://threejs.org/editor/) directly inside VSCode
 
 ## Commands
 
-* From the context menu supported file in the explorer
-  * `Open in Editor`
-  * `Open in Viewer`
+* From the 'Open With' context menu option in the explorer
+  * `3D Mesh Viewer`
+  * `3D Mesh Editor`
 * From the command palette
-  * `Open THREE.js Editor`
-  * `Open URL in Viewer`
+  * `3D Mesh Viewer: Open file in the viewer`
+  * `3D Mesh Viewer: Open file in the editor`
 
 ## Configuration
 
