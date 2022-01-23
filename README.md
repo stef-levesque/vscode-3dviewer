@@ -69,7 +69,8 @@ Use the [THREE.js editor](https://threejs.org/editor/) directly inside VSCode
 
 ## Requirements
 
-Visual Studio Code v1.49.0
+- Visual Studio Code v1.49.0
+- WebGL-compatible platform
 
 ## Credits
 
