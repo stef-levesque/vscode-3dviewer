@@ -216,6 +216,18 @@ function loadModel() {
         boundingBox.visible = userSettings.boundingBox;
         editorScene.add(boundingBox);
         renderingFolder.add(boundingBox, 'visible').name('show bounding box');
+        
+        // const axes_size =
+        //     Math.ceil(
+        //     Math.max(
+        //         Math.abs(boundingBox.max.x),
+        //         Math.abs(boundingBox.min.x),
+        //         Math.abs(boundingBox.max.y),
+        //         Math.abs(boundingBox.min.y)
+        //     ) / 5
+        //     ) * 10;
+        // debugger;
+        
     
         if (boundingBox.geometry) {
             boundingBox.geometry.computeBoundingSphere();
@@ -223,27 +235,21 @@ function loadModel() {
             if (boundingBox.geometry.boundingSphere) {
                 const center = boundingBox.geometry.boundingSphere.center;
                 const offset = boundingBox.geometry.boundingSphere.radius * 3;
-    
+                
+                const axesHelper = new THREE.AxisHelper(offset);
+                axesHelper.name = 'axes';
+                axesHelper.visible = userSettings.axes;
+                editorScene.add(axesHelper);
+                renderingFolder.add(axesHelper, 'visible').name('show axes');
+
                 controls.target = center;
                 camera.position.set(center.x + offset, center.y + offset, center.z + offset);
                 camera.updateProjectionMatrix();
                 controls.update();
             }
         }
-        if (userSettings.axes) {
-            const size =
-              Math.ceil(
-                Math.max(
-                  Math.abs(boundingBox.max.x),
-                  Math.abs(boundingBox.min.x),
-                  Math.abs(boundingBox.max.y),
-                  Math.abs(boundingBox.min.y)
-                ) / 5
-              ) * 10;
         
-            const axesHelper = new THREE.AxesHelper(size);
-            editorScene.add(axesHelper);
-          }
+        
         
     
         onWireframeChange(userSettings.wireframe);
