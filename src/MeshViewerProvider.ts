@@ -100,6 +100,7 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
             background: config.get('background', '#8f8f8f'),
             useEnvCube: config.get('useEnvCube', true),
             boundingBox: config.get('boundingBox', false),
+            axes: config.get('axes', false),
             grid: config.get('grid', true),
             gridSize: config.get('gridSize', 32),
             near: config.get('near', 0.01),
