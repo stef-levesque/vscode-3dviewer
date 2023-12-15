@@ -111,6 +111,11 @@
                     "description": "Display a bounding box around the model",
                     "default": false
                 },
+                "3dviewer.axes": {
+                    "type": "boolean",
+                    "description": "Display model axes",
+                    "default": false
+                },
                 "3dviewer.grid": {
                     "type": "boolean",
                     "description": "Display a grid at the origin",

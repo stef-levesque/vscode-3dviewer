@@ -230,6 +230,21 @@ function loadModel() {
                 controls.update();
             }
         }
+        if (userSettings.axes) {
+            const size =
+              Math.ceil(
+                Math.max(
+                  Math.abs(boundingBox.max.x),
+                  Math.abs(boundingBox.min.x),
+                  Math.abs(boundingBox.max.y),
+                  Math.abs(boundingBox.min.y)
+                ) / 5
+              ) * 10;
+        
+            const axesHelper = new THREE.AxesHelper(size);
+            editorScene.add(axesHelper);
+          }
+        
     
         onWireframeChange(userSettings.wireframe);
     
