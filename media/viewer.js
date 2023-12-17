@@ -29,7 +29,7 @@ document.body.appendChild(renderer.domElement);
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 12, 0);
 camera.position.set(2, 18, 28);
-// controls.update();
+// controls.update(); //this causes duplicate render calls, seems unnecessary
 const modelLoader = createModelLoader();
 const mixers = [];
 
@@ -215,18 +215,6 @@ function loadModel() {
         boundingBox.visible = userSettings.boundingBox;
         editorScene.add(boundingBox);
         renderingFolder.add(boundingBox, 'visible').name('show bounding box');
-        
-        // const axes_size =
-        //     Math.ceil(
-        //     Math.max(
-        //         Math.abs(boundingBox.max.x),
-        //         Math.abs(boundingBox.min.x),
-        //         Math.abs(boundingBox.max.y),
-        //         Math.abs(boundingBox.min.y)
-        //     ) / 5
-        //     ) * 10;
-        // debugger;
-        
     
         if (boundingBox.geometry) {
             boundingBox.geometry.computeBoundingSphere();
