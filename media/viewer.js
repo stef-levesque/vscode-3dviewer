@@ -29,8 +29,7 @@ document.body.appendChild(renderer.domElement);
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 12, 0);
 camera.position.set(2, 18, 28);
-controls.update();
-
+// controls.update();
 const modelLoader = createModelLoader();
 const mixers = [];
 
@@ -245,10 +244,10 @@ function loadModel() {
                 controls.target = center;
                 camera.position.set(center.x + offset, center.y + offset, center.z + offset);
                 camera.updateProjectionMatrix();
-                controls.update();
+                
             }
         }
-        
+        controls.update();
         
         
     
