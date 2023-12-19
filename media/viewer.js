@@ -1,3 +1,4 @@
+// import * as THREE from "three";
 const clock = new THREE.Clock();
 const userSettings = JSON.parse(document.getElementById('vscode-3dviewer-data').getAttribute('data-settings'));
 const fpsLimit = userSettings.limitFps;
@@ -74,6 +75,8 @@ function createModelLoader() {
         case 'fbx': return new THREE.FBXLoader();
         case 'stl': return new THREE.STLLoader();
         case 'ply': return new THREE.PLYLoader();
+        case 'gltf': return new THREE.GLTFLoader();
+        case 'glb': return new THREE.GLTFLoader();
         default:    return new THREE.OBJLoader();
     }
 }

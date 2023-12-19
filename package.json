@@ -61,6 +61,12 @@
                         "filenamePattern": "*.obj"
                     },
                     {
+                        "filenamePattern": "*.gltf"
+                    },
+                    {
+                        "filenamePattern": "*.glb"
+                    },
+                    {
                         "filenamePattern": "*.stl"
                     },
                     {
@@ -83,6 +89,12 @@
                     },
                     {
                         "filenamePattern": "*.obj"
+                    },
+                    {
+                        "filenamePattern": "*.gltf"
+                    },
+                    {
+                        "filenamePattern": "*.glb"
                     },
                     {
                         "filenamePattern": "*.stl"
