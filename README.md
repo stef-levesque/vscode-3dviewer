@@ -81,3 +81,10 @@ Visual Studio Code v1.49.0
 ## License
 
 [MIT](LICENSE.md)
+
+## Build local package
+`npm install -g @vscode/vsce`
+
+`$ vsce package`
+
+`# myExtension.vsix generated`
