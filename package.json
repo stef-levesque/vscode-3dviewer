@@ -45,7 +45,9 @@
     ],
     "activationEvents": [
         "onCustomEditor:3dviewer.viewer",
-        "onCustomEditor:3dviewer.editor"
+        "onCustomEditor:3dviewer.editor",
+        "onCommand:3dviewer.openIn3dViewer",
+        "onCommand:3dviewer.openIn3dEditor"
     ],
     "main": "./out/extension",
     "contributes": {
@@ -176,7 +178,17 @@
                     "default": false
                 }
             }
-        }
+        },
+        "commands": [
+            {
+                "command": "3dviewer.openIn3dViewer",
+                "title": "3D Viewer: Open file in the model viewer"
+            },
+            {
+                "command": "3dviewer.openIn3dEditor",
+                "title": "3D Viewer: Open file in the model editor"
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
