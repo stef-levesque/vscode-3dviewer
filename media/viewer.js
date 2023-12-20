@@ -1,9 +1,16 @@
-// import * as THREE from "three";
+import * as THREE from "three";
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+
 const clock = new THREE.Clock();
 const userSettings = JSON.parse(document.getElementById('vscode-3dviewer-data').getAttribute('data-settings'));
 const fpsLimit = userSettings.limitFps;
 
-const userMenu = new dat.GUI();
+const userMenu = new GUI();
 const editorScene = new THREE.Scene();
 const mainScene = new THREE.Scene();
 const cubeTextureLoader = new THREE.CubeTextureLoader().setPath('textures/cube/');
@@ -28,7 +35,7 @@ renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 12, 0);
 camera.position.set(2, 18, 28);
 // controls.update(); //this causes duplicate render calls, seems unnecessary
@@ -146,11 +153,11 @@ function createModelLoader() {
                     return loader;
         case 'dae': return new THREE.ColladaLoader();
         case 'fbx': return new THREE.FBXLoader();
-        case 'stl': return new THREE.STLLoader();
+        case 'stl': return new STLLoader();
         case 'ply': return new THREE.PLYLoader();
-        case 'gltf': return new THREE.GLTFLoader();
-        case 'glb': return new THREE.GLTFLoader();
-        default:    return new THREE.OBJLoader();
+        case 'gltf': return new GLTFLoader();
+        case 'glb': return new GLTFLoader();
+        default:    return new OBJLoader();
     }
 }
 
@@ -225,8 +232,8 @@ function onProgress(xhr) {
 }
 
 function loadModel() {
-    if(modelLoader instanceof THREE.OBJLoader) {            
-        new THREE.MTLLoader().load(userSettings.fileToLoad.replace('.obj', '.mtl'), materials => {
+    if(modelLoader instanceof OBJLoader) {            
+        new MTLLoader().load(userSettings.fileToLoad.replace('.obj', '.mtl'), materials => {
             modelLoader.setMaterials(materials);
 
             loadModelFile();
@@ -287,7 +294,7 @@ function loadModelFile() {
                 const center = boundingBox.geometry.boundingSphere.center;
                 const offset = boundingBox.geometry.boundingSphere.radius * 3;
                 
-                const axesHelper = new THREE.AxisHelper(offset);
+                const axesHelper = new THREE.AxesHelper(offset);
                 axesHelper.name = 'axes';
                 axesHelper.visible = userSettings.axes;
                 editorScene.add(axesHelper);

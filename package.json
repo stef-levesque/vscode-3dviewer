@@ -43,12 +43,7 @@
     "categories": [
         "Other"
     ],
-    "activationEvents": [
-        
-        
-        
-        
-    ],
+    "activationEvents": [],
     "main": "./out/extension",
     "contributes": {
         "customEditors": [
@@ -125,7 +120,12 @@
                     "type": "string",
                     "description": "Default image for the background. When set to 'none' the backgroundColor gets used.",
                     "default": "Bridge2",
-                    "enum": [ "none", "Bridge2", "MilkyWay", "Pisa" ]
+                    "enum": [
+                        "none",
+                        "Bridge2",
+                        "MilkyWay",
+                        "Pisa"
+                    ]
                 },
                 "3dviewer.backgroundColor": {
                     "type": "string",
@@ -197,18 +197,14 @@
         "watch": "tsc -w -p ./"
     },
     "dependencies": {
-        "three": "0.93.0"
+        "three": "^0.158.0"
     },
     "devDependencies": {
-        "@types/dat-gui": "^0.6.3",
-        "@types/mocha": "^2.2.42",
-        "@types/node": "^12.12.0",
-        "@types/three": "0.93.31",
-        "@types/webgl-ext": "0.0.31",
+        "@types/node": "^20.10.5",
         "@types/vscode": "^1.73.0",
-		"@typescript-eslint/eslint-plugin": "^6.7.0",
-		"@typescript-eslint/parser": "^6.7.0",
-		"eslint": "^8.32.0",
-		"typescript": "^5.3.2"
+        "@typescript-eslint/eslint-plugin": "^6.7.0",
+        "@typescript-eslint/parser": "^6.7.0",
+        "eslint": "^8.32.0",
+        "typescript": "^5.3.2"
     }
 }
