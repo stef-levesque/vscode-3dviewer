@@ -225,6 +225,20 @@ function onProgress(xhr) {
 }
 
 function loadModel() {
+    if(modelLoader instanceof THREE.OBJLoader) {            
+        new THREE.MTLLoader().load(userSettings.fileToLoad.replace('.obj', '.mtl'), materials => {
+            modelLoader.setMaterials(materials);
+
+            loadModelFile();
+        }, _ => {  // Assume no .mtl file
+            loadModelFile();
+        });
+    }else{
+        loadModelFile();
+    }
+}
+
+function loadModelFile() {
     modelLoader.load(userSettings.fileToLoad, file => {
         const object = file.scene ? file.scene : file.isGeometry || file.isBufferGeometry ? new THREE.Mesh(file) : file;
         object.mixer = new THREE.AnimationMixer(object);
