@@ -185,6 +185,7 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
         const OrbitControlsUri = this.getJSPath( 'three/examples/jsm/controls/OrbitControls.js',webview);
 
         const DatUri = this.getJSPath( 'dat.gui/build/dat.gui.module.js',webview);
+        const lilguiUri = this.getJSPath( 'lil-gui/dist/lil-gui.esm.min.js',webview);
 
         return /* html */`
             <!DOCTYPE html>
@@ -213,7 +214,8 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
                 {
                     "imports": {
                         "three": "${threeUri}",
-                        "three/addons/": "${threeAddonsUri}"
+                        "three/addons/": "${threeAddonsUri}",
+                        "lil-gui": "${lilguiUri}"
                     }
                 }
                 </script>

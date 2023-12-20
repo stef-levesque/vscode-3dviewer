@@ -4,13 +4,14 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
-import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+// import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
+import { GUI } from 'lil-gui';
 
 const clock = new THREE.Clock();
 const userSettings = JSON.parse(document.getElementById('vscode-3dviewer-data').getAttribute('data-settings'));
 const fpsLimit = userSettings.limitFps;
 
-const userMenu = new GUI();
+const userMenu = new GUI({ closeFolders: true });
 const editorScene = new THREE.Scene();
 const mainScene = new THREE.Scene();
 const cubeTextureLoader = new THREE.CubeTextureLoader().setPath('textures/cube/');
@@ -69,6 +70,10 @@ for (const mat in materials) {
     effectController[mat] = () => onMainObjectMaterialChange(mat);
     materialFolder.add(effectController, mat).name(mat);
 }
+
+// for (const folder in userMenu.folders) {
+//     userMenu.folders[folder].close();
+// }
 
 animate();
 
@@ -284,7 +289,8 @@ function loadModelFile() {
         const boundingBox = new THREE.BoxHelper(object);
         boundingBox.name = 'MainObjectBBox';
         boundingBox.visible = userSettings.boundingBox;
-        editorScene.add(boundingBox);
+        object.add(boundingBox);
+        // editorScene.add(boundingBox);
         renderingFolder.add(boundingBox, 'visible').name('show bounding box');
     
         if (boundingBox.geometry) {
@@ -297,7 +303,8 @@ function loadModelFile() {
                 const axesHelper = new THREE.AxesHelper(offset);
                 axesHelper.name = 'axes';
                 axesHelper.visible = userSettings.axes;
-                editorScene.add(axesHelper);
+                // editorScene.add(axesHelper);
+                object.add(axesHelper);
                 renderingFolder.add(axesHelper, 'visible').name('show axes');
 
                 controls.target = center;
@@ -396,7 +403,7 @@ function generateMaterials() {
         },
         'colors':
         {
-            m: new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0xffffff, shininess: 2, vertexColors: THREE.VertexColors }),
+            m: new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0xffffff, shininess: 2, vertexColors: true }),
             h: 0, s: 0, l: 1
         },
         'plastic':
