@@ -97,7 +97,8 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
         const initialData = {
             fileToLoad: uri.toString(),
             wireframe: config.get('wireframe', false),
-            background: config.get('background', '#8f8f8f'),
+            backgroundColor: config.get('backgroundColor', '#8f8f8f'),
+            backgroundImage: config.get('backgroundImage', 'Bridge2'),
             useEnvCube: config.get('useEnvCube', true),
             boundingBox: config.get('boundingBox', false),
             axes: config.get('axes', false),

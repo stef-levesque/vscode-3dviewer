@@ -49,7 +49,8 @@ Use the [THREE.js editor](https://threejs.org/editor/) directly inside VSCode
 |Name                             |Type      |Description
 |---------------------------------|----------|------------
 |`3dviewer.wireframe`             |`boolean` |Display mesh in wireframe mode
-|`3dviewer.background`            |`string`  |Set the default background color (e.g. '#8f8f8f')
+|`3dviewer.backgroundColor`       |`string`  |Set the default background color (e.g. '#8f8f8f')
+|`3dviewer.backgroundImage`       |`string`  |Set the default background image
 |`3dviewer.boundingBox`           |`boolean` |Display a bounding box around the model
 |`3dviewer.axes`                  |`boolean` |Display a bounding box around the model
 |`3dviewer.grid`                  |`boolean` |Display a grid at the origin
