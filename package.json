@@ -25,6 +25,7 @@
         "vscode",
         "3d",
         "mesh",
+        "model",
         "viewer",
         "webgl",
         "3ds",
@@ -34,6 +35,11 @@
         "obj",
         "stl"
     ],
+    "capabilities": {
+        "untrustedWorkspaces": {
+            "supported": false
+        }
+    },
     "categories": [
         "Other"
     ],
@@ -177,8 +183,8 @@
         "@types/mocha": "^2.2.42",
         "@types/node": "^12.12.0",
         "@types/three": "^0.84.30",
-        "@types/vscode": "^1.45.1",
-        "@types/webgl-ext": "0.0.31",
-        "typescript": "^3.8.3"
+        "@types/vscode": "^1.58.1",
+        "@types/webgl-ext": "0.0.32",
+        "typescript": "^4.3.5"
     }
 }
