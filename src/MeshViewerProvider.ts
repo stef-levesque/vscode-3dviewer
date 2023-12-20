@@ -87,6 +87,11 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
 
     //#endregion
 
+    private getThreeJSPath(file: string, webview:vscode.Webview) {
+        const diskPath = vscode.Uri.file(path.join(this._context.extensionPath, 'node_modules/three', file))
+        return webview.asWebviewUri(diskPath);                
+    }
+
     private getMediaPath(relativePath: string, webview:vscode.Webview): vscode.Uri {
         const diskPath = vscode.Uri.file(path.join(this._context.extensionPath,'media', relativePath));
         return webview.asWebviewUri(diskPath);
@@ -114,18 +119,18 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
 
     private getScripts( nonce: string, webview:vscode.Webview): string {
         const scripts = [
-            this.getMediaPath( 'build/three.js',webview),
-            this.getMediaPath( 'examples/js/libs/inflate.min.js',webview),
-            this.getMediaPath( 'examples/js/libs/dat.gui.min.js',webview),
-            this.getMediaPath( 'examples/js/controls/OrbitControls.js',webview),
-            this.getMediaPath( 'examples/js/loaders/LoaderSupport.js',webview),
-            this.getMediaPath( 'examples/js/loaders/ColladaLoader.js',webview),
-            this.getMediaPath( 'examples/js/loaders/FBXLoader.js',webview),
-            this.getMediaPath( 'examples/js/loaders/TDSLoader.js',webview),
-            this.getMediaPath( 'examples/js/loaders/OBJLoader.js',webview),
-            this.getMediaPath( 'examples/js/loaders/STLLoader.js',webview),
-            this.getMediaPath( 'examples/js/loaders/PLYLoader.js',webview),
-            this.getMediaPath( 'examples/js/loaders/GLTFLoader.js',webview),
+            this.getThreeJSPath( 'build/three.js',webview),
+            this.getThreeJSPath( 'examples/js/libs/inflate.min.js',webview),
+            this.getThreeJSPath( 'examples/js/libs/dat.gui.min.js',webview),
+            this.getThreeJSPath( 'examples/js/controls/OrbitControls.js',webview),
+            this.getThreeJSPath( 'examples/js/loaders/LoaderSupport.js',webview),
+            this.getThreeJSPath( 'examples/js/loaders/ColladaLoader.js',webview),
+            this.getThreeJSPath( 'examples/js/loaders/FBXLoader.js',webview),
+            this.getThreeJSPath( 'examples/js/loaders/TDSLoader.js',webview),
+            this.getThreeJSPath( 'examples/js/loaders/OBJLoader.js',webview),
+            this.getThreeJSPath( 'examples/js/loaders/STLLoader.js',webview),
+            this.getThreeJSPath( 'examples/js/loaders/PLYLoader.js',webview),
+            this.getThreeJSPath( 'examples/js/loaders/GLTFLoader.js',webview),
             this.getMediaPath( 'viewer.js',webview)
         ];
         return scripts
