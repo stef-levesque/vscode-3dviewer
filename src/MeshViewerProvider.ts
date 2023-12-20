@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getNonce, WebviewCollection, MeshDocument, disposeAll } from './util';
+import { getNonce, WebviewCollection, MeshDocument, disposeAll, getThreeJSPath, getMediaPath } from './util';
 
 /**
  * Provider for Mesh viewers.
@@ -141,9 +141,6 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
             document.uri;
 
         // Local path to script and css for the webview
-        const scriptUri = webview.asWebviewUri(vscode.Uri.file(
-            path.join(this._context.extensionPath, 'media', 'viewer.js')
-        ));
         const styleUri = webview.asWebviewUri(vscode.Uri.file(
             path.join(this._context.extensionPath, 'media', 'viewer.css')
         ));
