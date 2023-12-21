@@ -112,6 +112,7 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
             near: config.get('near', 0.01),
             far: config.get('far', 1000000),
             limitFps: config.get('limitFps', 0),
+            edges: config.get('edges', false),
             hotReloadAutomatically: config.get('hotReloadAutomatically', false)
         }
         return `<meta id="vscode-3dviewer-data" data-settings="${JSON.stringify(initialData).replace(/"/g, '&quot;')}">`

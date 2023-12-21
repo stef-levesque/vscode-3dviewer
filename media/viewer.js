@@ -9,10 +9,10 @@ import { GUI } from 'lil-gui';
 
 const clock = new THREE.Clock();
 const userSettings = JSON.parse(document.getElementById('vscode-3dviewer-data').getAttribute('data-settings'));
-const fpsLimit = userSettings.limitFps;
+// const fpsLimit = userSettings.limitFps;
 
 const userMenu = new GUI({ closeFolders: true });
-const editorScene = new THREE.Scene();
+// const editorScene = new THREE.Scene();
 const mainScene = new THREE.Scene();
 const cubeTextureLoader = new THREE.CubeTextureLoader().setPath('textures/cube/');
 
@@ -24,8 +24,10 @@ renderingFolder.add(camera, 'far').onChange(() => camera.updateProjectionMatrix(
 renderingFolder.addColor(userSettings, 'backgroundColor').onChange(onBackgroundColorChange);
 renderingFolder.add(userSettings, 'backgroundImage', [ 'none', 'Bridge2', 'MilkyWay', 'Pisa' ]).onChange(onBackgroundImageChange);
 renderingFolder.add(userSettings, 'wireframe').onChange(onWireframeToggle);
-renderingFolder.add(userSettings, 'grid').name('show grid').onChange((value) => { editorScene.getObjectByName('grid').visible = value; });
-renderingFolder.add(userSettings, 'gridSize').min(1).max(100).step(1).onChange(() => { editorScene.remove(editorScene.getObjectByName('grid')); createGrid(); });
+renderingFolder.add(userSettings, 'grid').name('show grid').onChange((value) => { mainScene.getObjectByName('grid').visible = value; });
+renderingFolder.add(userSettings, 'gridSize').min(1).max(100).step(1).onChange(() => { mainScene.remove(mainScene.getObjectByName('grid')); createGrid(); });
+renderingFolder.add(userSettings, 'limitFps').min(0).max(60).step(1);
+renderingFolder.add(userSettings, 'edges').name('show edges').onChange(setEdgesVisibility);
 
 onBackgroundImageChange(userSettings.backgroundImage);
 createGrid();
@@ -44,6 +46,7 @@ const modelLoader = createModelLoader();
 const mixers = [];
 
 loadModel();
+
 window.addEventListener('resize', onWindowResize, false);
 window.addEventListener('message', onMessageReceived, false);
 
@@ -71,10 +74,7 @@ for (const mat in materials) {
     materialFolder.add(effectController, mat).name(mat);
 }
 
-// for (const folder in userMenu.folders) {
-//     userMenu.folders[folder].close();
-// }
-
+let isModelLoaded = false;
 animate();
 
 
@@ -128,12 +128,12 @@ function onWireframeToggle(wireframe) {
 }
 
 function onBackgroundColorChange(color) {
-    editorScene.background = new THREE.Color(color);
+    mainScene.background = new THREE.Color(color);
 }
 
 function onBackgroundImageChange(name) {
     if(name !== 'none') {
-        editorScene.background = loadCubeTexture(name);
+        mainScene.background = loadCubeTexture(name);
     }else{
         onBackgroundColorChange(userSettings.backgroundColor);
     }
@@ -220,7 +220,7 @@ function createGrid() {
     gridHelper.name = 'grid';
     gridHelper.position.set(0, - 0.04, 0);
     gridHelper.visible = userSettings.grid;
-    editorScene.add(gridHelper);
+    mainScene.add(gridHelper);
 }
 
 function onWindowResize() {
@@ -232,27 +232,35 @@ function onWindowResize() {
 function onProgress(xhr) {
     if (xhr.lengthComputable) {
         const percentComplete = xhr.loaded / xhr.total * 100;
-        console.log(Math.round(percentComplete) + '% downloaded');
+        console.log(Math.round(percentComplete) + '% loaded');
     }
 }
 
 function loadModel() {
     if(modelLoader instanceof OBJLoader) {            
         new MTLLoader().load(userSettings.fileToLoad.replace('.obj', '.mtl'), materials => {
+            materials.preload();
             modelLoader.setMaterials(materials);
 
             loadModelFile();
-        }, _ => {  // Assume no .mtl file
+        }, undefined, _ => {  // Assume no .mtl file
             loadModelFile();
         });
-    }else{
+    }
+    else{
         loadModelFile();
     }
 }
 
 function loadModelFile() {
     modelLoader.load(userSettings.fileToLoad, file => {
-        const object = file.scene ? file.scene : file.isGeometry || file.isBufferGeometry ? new THREE.Mesh(file) : file;
+        let object;
+
+        if (userSettings.fileToLoad.endsWith('.stl')) {
+            object = new THREE.Mesh(file, new THREE.MeshPhongMaterial({ color: 0xaaaaaa, specular: 0x111111, shininess: 200 }));
+        } else {
+            object = file.scene ? file.scene : file.isGeometry || file.isBufferGeometry ? new THREE.Mesh(file) : file;
+        }
         object.mixer = new THREE.AnimationMixer(object);
         mixers.push(object.mixer);
         
@@ -266,7 +274,7 @@ function loadModelFile() {
                 animationFolder.add(object.mixer.clipAction(file.animations[i]), 'stop').name('stop animation ' + i);
             }
         }
-       
+
         object.name = 'MainObject';
         mainScene.add(object);
         
@@ -318,10 +326,40 @@ function loadModelFile() {
         
     
         onWireframeToggle(userSettings.wireframe);
-    
+        addEdgesToMeshes(object, mainScene);
+        isModelLoaded = true;
     }, onProgress, xhr => console.log(xhr.toString()));
 }
 
+function addEdgesToMeshes() {
+    const object = mainScene.getObjectByName('MainObject');
+    if (object){
+        // console.log('in addEdgesToMeshes, show edges',userSettings.edges );
+    object.traverse(function (node) {
+        if (node instanceof THREE.Mesh) {
+            var geometry = new THREE.EdgesGeometry(node.geometry, 10);
+            var material = new THREE.LineBasicMaterial({ color: 0x000000 });
+            var wireframe = new THREE.LineSegments(geometry, material);
+            wireframe.name = 'edges';
+            node.add(wireframe);
+            wireframe.visible = userSettings.edges;
+
+            // Modify the material of the mesh to avoid z fingthing
+            node.material.polygonOffset = true;
+            node.material.polygonOffsetFactor = 1;
+            node.material.polygonOffsetUnits = 1;
+        }
+    });
+    }}
+function setEdgesVisibility( ) {
+    const object = mainScene.getObjectByName('MainObject');
+    if (object){
+    object.traverse(function (node) {
+        if (node.name === 'edges') {
+            node.visible = userSettings.edges;
+        }
+    });
+}}
 function populateModelFolder(baseObject, modelFolder, property) {
     if (baseObject) {
         const objectFolder = modelFolder.addFolder(baseObject.name ? baseObject.name : '{noname}');
@@ -337,6 +375,9 @@ function populateModelFolder(baseObject, modelFolder, property) {
 }
 
 function animate() {
+    const fpsLimit = userSettings.limitFps;
+    render();
+
     setTimeout(() => {
         requestAnimationFrame(animate);
 
@@ -347,14 +388,17 @@ function animate() {
         }
     }, fpsLimit ? (1000 / fpsLimit) : 0);
 
-    render();
 }
 
 function render() {
-    renderer.clear();
-    renderer.render(editorScene, camera);
-    renderer.clearDepth();
-    renderer.render(mainScene, camera);
+    if (isModelLoaded) {
+        // console.log('in render');
+        // renderer.clear();
+        // renderer.render(editorScene, camera);
+        // renderer.clearDepth();
+        renderer.render(mainScene, camera);
+    }
+    
 }
 
 function generateMaterials() {
