@@ -142,6 +142,11 @@
                     "description": "Display model axes",
                     "default": false
                 },
+                "3dviewer.edges": {
+                    "type": "boolean",
+                    "description": "Display model edges",
+                    "default": false
+                },
                 "3dviewer.grid": {
                     "type": "boolean",
                     "description": "Display a grid at the origin",
