@@ -19,7 +19,7 @@
         "theme": "dark"
     },
     "engines": {
-        "vscode": "^1.75.0"
+        "vscode": "^1.85.0"
     },
     "keywords": [
         "vscode",
@@ -44,7 +44,7 @@
         "Other"
     ],
     "activationEvents": [],
-    "main": "./out/extension",
+    "main": "./out/extension.js",
     "contributes": {
         "customEditors": [
             {
@@ -168,7 +168,8 @@
         "watch": "tsc -w -p ./"
     },
     "dependencies": {
-        "three": "^0.159.0"
+        "three": "^0.159.0",
+        "lil-gui": "^0.19.1"
     },
     "devDependencies": {
         "@types/node": "^20.10.5",
@@ -176,7 +177,6 @@
         "@typescript-eslint/eslint-plugin": "^6.15.0",
         "@typescript-eslint/parser": "^6.15.0",
         "eslint": "^8.56.0",
-        "lil-gui": "^0.19.1",
         "typescript": "^5.3.3"
     }
 }
