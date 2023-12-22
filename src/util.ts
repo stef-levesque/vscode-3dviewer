@@ -19,16 +19,6 @@ export function disposeAll(disposables: vscode.Disposable[]) {
     }
 }
 
-export function getThreeJSPath(file: string, context: vscode.ExtensionContext) {
-    return vscode.Uri.file(path.join(context.extensionPath, 'node_modules/three', file))
-                 .with({ scheme: 'vscode-resource' });
-}
-
-export function getMediaPath(file: string, context: vscode.ExtensionContext): vscode.Uri {
-    return vscode.Uri.file(path.join(context.extensionPath, 'media', file))
-                 .with({ scheme: 'vscode-resource' });
-}
-
 /**
  * Tracks all webviews.
  */

@@ -1,14 +1,10 @@
 import * as vscode from 'vscode';
-import { MeshEditorProvider } from './MeshEditorProvider';
 import { MeshViewerProvider } from './MeshViewerProvider';
 
 export function handleOpenIn3dViewerCommand() {
     openUserSelectedFileInEditor(MeshViewerProvider.viewType);
 }
 
-export function handleOpenIn3dEditorCommand() {
-    openUserSelectedFileInEditor(MeshEditorProvider.viewType);
-}
 
 
 async function openUserSelectedFileInEditor(editorViewType: string) {

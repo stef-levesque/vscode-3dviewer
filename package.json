@@ -76,36 +76,6 @@
                         "filenamePattern": "*.ply"
                     }
                 ]
-            },
-            {
-                "viewType": "3dviewer.editor",
-                "displayName": "3D Mesh Editor",
-                "selector": [
-                    {
-                        "filenamePattern": "*.3ds"
-                    },
-                    {
-                        "filenamePattern": "*.dae"
-                    },
-                    {
-                        "filenamePattern": "*.fbx"
-                    },
-                    {
-                        "filenamePattern": "*.obj"
-                    },
-                    {
-                        "filenamePattern": "*.gltf"
-                    },
-                    {
-                        "filenamePattern": "*.glb"
-                    },
-                    {
-                        "filenamePattern": "*.stl"
-                    },
-                    {
-                        "filenamePattern": "*.ply"
-                    }
-                ]
             }
         ],
         "configuration": {
@@ -188,10 +158,6 @@
             {
                 "command": "3dviewer.openIn3dViewer",
                 "title": "3D Viewer: Open file in the model viewer"
-            },
-            {
-                "command": "3dviewer.openIn3dEditor",
-                "title": "3D Viewer: Open file in the model editor"
             }
         ]
     },

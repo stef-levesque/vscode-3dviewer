@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getNonce, WebviewCollection, MeshDocument, disposeAll, getThreeJSPath, getMediaPath } from './util';
+import { getNonce, WebviewCollection, MeshDocument, disposeAll } from './util';
 
 /**
  * Provider for Mesh viewers.
