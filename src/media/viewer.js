@@ -6,11 +6,10 @@ import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
 // import { GUI } from 'three/addons/libs/lil-gui.module.min.js';
 import { GUI } from 'lil-gui';
-
+debugger;
 const clock = new THREE.Clock();
 const userSettings = JSON.parse(document.getElementById('vscode-3dviewer-data').getAttribute('data-settings'));
 // const fpsLimit = userSettings.limitFps;
-
 const userMenu = new GUI({ closeFolders: true });
 // const editorScene = new THREE.Scene();
 const mainScene = new THREE.Scene();
@@ -155,13 +154,13 @@ function createModelLoader() {
     const fileToLoad = userSettings.fileToLoad;
 
     switch(fileToLoad.split('.').pop().toLowerCase()) {
-        case '3ds': const loader = new THREE.TDSLoader();
-                    loader.setPath(fileToLoad.substring(0, fileToLoad.lastIndexOf('/') + 1));
-                    return loader;
-        case 'dae': return new THREE.ColladaLoader();
-        case 'fbx': return new THREE.FBXLoader();
+        // case '3ds': const loader = new THREE.TDSLoader();
+        //             loader.setPath(fileToLoad.substring(0, fileToLoad.lastIndexOf('/') + 1));
+        //             return loader;
+        // case 'dae': return new THREE.ColladaLoader();
+        // case 'fbx': return new THREE.FBXLoader();
         case 'stl': return new STLLoader();
-        case 'ply': return new THREE.PLYLoader();
+        // case 'ply': return new THREE.PLYLoader();
         case 'gltf': return new GLTFLoader();
         case 'glb': return new GLTFLoader();
         default:    return new OBJLoader();

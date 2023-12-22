@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { getNonce, WebviewCollection, MeshDocument, disposeAll, escapeAttribute } from './util';
+import * as fs from 'fs';
 
 /**
  * Provider for Mesh viewers.
@@ -156,9 +157,9 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
         const threeUri      = this.getResourceUri( 'node_modules/three/build/three.module.js',webview);
         const threeAddonsUri= this.getResourceUri( 'node_modules/three/examples/jsm/',webview);
         const lilguiUri     = this.getResourceUri( 'node_modules/lil-gui/dist/lil-gui.esm.min.js',webview);
-        const styleUri      = this.getResourceUri( 'src/media/viewer.css',webview);
-        const mediaUri      = this.getResourceUri( 'src/media',webview);
-        const viewerUri     = this.getResourceUri( 'src/media/viewer.js',webview);
+        const styleUri      = this.getResourceUri( 'out/media/resources/viewer.css',webview);
+        const mediaUri      = this.getResourceUri( 'out/media/resources',webview);
+        const viewerUri = this.getResourceUri('out/media/viewer.js', webview);
 
         return /* html */`
             <!DOCTYPE html>
@@ -196,11 +197,7 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
             </body>
             </html>`;
     }
-    // ${this.getModuleScripts(nonce,webview)}
-    // ${this.getScripts(nonce,webview)}
-    // "GLTFLoader": "${GLTFLoaderUri}",
-    //                     "OrbitControls": "${OrbitControlsUri}",
-    //            ${this.getModuleScripts(nonce,webview)}
+
     private readonly _callbacks = new Map<number, (response: any) => void>();
 
     private postMessage(panel: vscode.WebviewPanel, type: string, body: any): void {
