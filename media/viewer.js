@@ -32,7 +32,9 @@ renderingFolder.add(userSettings, 'edges').name('show edges').onChange(setEdgesV
 onBackgroundImageChange(userSettings.backgroundImage);
 createGrid();
 
-const renderer = new THREE.WebGLRenderer({alpha: true});
+const renderer = new THREE.WebGLRenderer({alpha: true,
+                                        //  antialias: true,
+                                        });
 renderer.autoClear = false;
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -327,6 +329,7 @@ function loadModelFile() {
     
         onWireframeToggle(userSettings.wireframe);
         addEdgesToMeshes(object, mainScene);
+        setEdgesVisibility();
         isModelLoaded = true;
     }, onProgress, xhr => console.log(xhr.toString()));
 }
@@ -343,11 +346,6 @@ function addEdgesToMeshes() {
             wireframe.name = 'edges';
             node.add(wireframe);
             wireframe.visible = userSettings.edges;
-
-            // Modify the material of the mesh to avoid z fingthing
-            node.material.polygonOffset = true;
-            node.material.polygonOffsetFactor = 1;
-            node.material.polygonOffsetUnits = 1;
         }
     });
     }}
@@ -357,6 +355,17 @@ function setEdgesVisibility( ) {
     object.traverse(function (node) {
         if (node.name === 'edges') {
             node.visible = userSettings.edges;
+            if (userSettings.edges) {
+                // Modify the material of the mesh to avoid z fingthing
+                node.parent.material.polygonOffset = true;
+                node.parent.material.polygonOffsetFactor = 1;
+                node.parent.material.polygonOffsetUnits = 1;
+            }
+            else{
+                node.parent.material.polygonOffset = false;
+                node.parent.material.polygonOffsetFactor = 0;
+                node.parent.material.polygonOffsetUnits = 0;
+            }
         }
     });
 }}
