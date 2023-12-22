@@ -2,8 +2,8 @@
     "name": "vscode-3dviewer",
     "displayName": "3D Viewer for VSCode",
     "description": "Preview 3D models in VSCode",
-    "version": "0.2.2",
-    "publisher": "slevesque",
+    "version": "0.2.3",
+    "publisher": "ivanCobotic",
     "license": "LICENSE.md",
     "icon": "icon.png",
     "bugs": {
@@ -44,7 +44,6 @@
         "Other"
     ],
     "activationEvents": [],
-    "main": "./out/extension.js",
     "contributes": {
         "customEditors": [
             {
@@ -161,6 +160,7 @@
             }
         ]
     },
+    "main": "./out/extension.js",
     "scripts": {
         "vscode:prepublish": "npm run compile",
         "compile": "tsc -p ./",
@@ -168,14 +168,15 @@
         "watch": "tsc -w -p ./"
     },
     "dependencies": {
-        "three": "^0.159.0",
-        "lil-gui": "^0.19.1"
+        "lil-gui": "^0.19.1",
+        "three": "^0.159.0"
     },
     "devDependencies": {
         "@types/node": "^20.10.5",
         "@types/vscode": "^1.85.0",
         "@typescript-eslint/eslint-plugin": "^6.15.0",
         "@typescript-eslint/parser": "^6.15.0",
+        "esbuild": "^0.19.10",
         "eslint": "^8.56.0",
         "typescript": "^5.3.3"
     }

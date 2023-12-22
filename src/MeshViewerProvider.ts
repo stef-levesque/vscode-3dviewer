@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getNonce, WebviewCollection, MeshDocument, disposeAll } from './util';
+import { getNonce, WebviewCollection, MeshDocument, disposeAll, escapeAttribute } from './util';
 
 /**
  * Provider for Mesh viewers.
@@ -97,6 +97,11 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
         return webview.asWebviewUri(diskPath);
     }
 
+    private getResourceUri(relativePath: string, webview:vscode.Webview): vscode.Uri {
+        const diskPath = vscode.Uri.file(path.join(this._context.extensionPath, relativePath));
+        return webview.asWebviewUri(diskPath);
+    }
+
     private getSettings(uri: vscode.Uri): string {
         const config = vscode.workspace.getConfiguration('3dviewer');
         const initialData = {
@@ -117,49 +122,18 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
         }
         return `<meta id="vscode-3dviewer-data" data-settings="${JSON.stringify(initialData).replace(/"/g, '&quot;')}">`
     }
-
+    
     private getModuleScripts( nonce: string, webview:vscode.Webview): string {
         const scripts = [
-            // this.getJSPath( 'three/build/three.js',webview),
-            // this.getJSPath( 'three/examples/jsm/libs/inflate.min.js',webview),
-            // this.getJSPath( 'dat.gui/build/dat.gui.min.js',webview),
-            // this.getJSPath( 'three/examples/jsm/libs/lil-gui.module.min.js',webview),
-            // this.getJSPath( 'three/examples/jsm/controls/OrbitControls.js',webview),
-            // // this.getJSPath( 'three/examples/jsm/loaders/LoaderSupport.js',webview),
-            // this.getJSPath( 'three/examples/jsm/loaders/ColladaLoader.js',webview),
-            // this.getJSPath( 'three/examples/jsm/loaders/FBXLoader.js',webview),
-            // this.getJSPath( 'three/examples/jsm/loaders/TDSLoader.js',webview),
-            // this.getJSPath( 'three/examples/jsm/loaders/OBJLoader.js',webview),
-            // this.getJSPath( 'three/examples/jsm/loaders/STLLoader.js',webview),
-            // this.getJSPath( 'three/examples/jsm/loaders/PLYLoader.js',webview),
-            // this.getJSPath( 'three/examples/jsm/loaders/GLTFLoader.js',webview),
+
             this.getMediaPath( 'viewer.js',webview)
         ];
         return scripts
             .map(source => `<script type="module" nonce="${nonce}" src="${source}"></script>`)
             .join('\n');
     }
-    private getScripts( nonce: string, webview:vscode.Webview): string {
-        const scripts = [
-            this.getJSPath( 'three/build/three.js',webview),
-            // this.getJSPath( 'three/examples/jsm/libs/inflate.min.js',webview),
-            // this.getJSPath( 'dat.gui/build/dat.gui.min.js',webview),
-            // this.getJSPath( 'three/examples/jsm/libs/lil-gui.module.min.js',webview),
-            // this.getJSPath( 'three/examples/jsm/controls/OrbitControls.js',webview),
-            // this.getJSPath( 'three/examples/jsm/loaders/LoaderSupport.js',webview),
-            // this.getJSPath( 'three/examples/jsm/loaders/ColladaLoader.js',webview),
-            // this.getJSPath( 'three/examples/jsm/loaders/FBXLoader.js',webview),
-            // this.getJSPath( 'three/examples/jsm/loaders/TDSLoader.js',webview),
-            // this.getJSPath( 'three/examples/jsm/loaders/OBJLoader.js',webview),
-            // this.getJSPath( 'three/examples/jsm/loaders/STLLoader.js',webview),
-            // this.getJSPath( 'three/examples/jsm/loaders/PLYLoader.js',webview),
-            // this.getJSPath( 'three/examples/jsm/loaders/GLTFLoader.js',webview),
-            // this.getMediaPath( 'viewer.js',webview)
-        ];
-        return scripts
-            .map(source => `<script nonce="${nonce}" src="${source}"></script>`)
-            .join('\n');
-    }
+
+    
     /**
      * Get the static HTML used for in our editor's webviews.
      */
@@ -169,24 +143,22 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
             document.uri;
 
         // Local path to script and css for the webview
-        const styleUri = webview.asWebviewUri(vscode.Uri.file(
-            path.join(this._context.extensionPath, 'media', 'viewer.css')
-        ));
-        const mediaUri = webview.asWebviewUri(vscode.Uri.file(
-            path.join(this._context.extensionPath, 'media')
-        ));
+        // const styleUri = webview.asWebviewUri(vscode.Uri.file(
+        //     path.join(this._context.extensionPath, 'media', 'viewer.css')
+        // ));
+        // const mediaUri = webview.asWebviewUri(vscode.Uri.file(
+        //     path.join(this._context.extensionPath, 'media')
+        // ));
 
         // Use a nonce to whitelist which scripts can be run
         const nonce = getNonce();
 
-        const threeUri = this.getJSPath( 'three/build/three.module.js',webview);
-        const threeAddonsUri = this.getJSPath( 'three/examples/jsm/',webview);
-        const STLLoaderUri = this.getJSPath( 'three/examples/jsm/loaders/STLLoader.js',webview);
-        const GLTFLoaderUri = this.getJSPath( 'three/examples/jsm/loaders/GLTFLoader.js',webview);
-        const OrbitControlsUri = this.getJSPath( 'three/examples/jsm/controls/OrbitControls.js',webview);
-
-        const DatUri = this.getJSPath( 'dat.gui/build/dat.gui.module.js',webview);
-        const lilguiUri = this.getJSPath( 'lil-gui/dist/lil-gui.esm.min.js',webview);
+        const threeUri      = this.getResourceUri( 'node_modules/three/build/three.module.js',webview);
+        const threeAddonsUri= this.getResourceUri( 'node_modules/three/examples/jsm/',webview);
+        const lilguiUri     = this.getResourceUri( 'node_modules/lil-gui/dist/lil-gui.esm.min.js',webview);
+        const styleUri      = this.getResourceUri( 'src/media/viewer.css',webview);
+        const mediaUri      = this.getResourceUri( 'src/media',webview);
+        const viewerUri     = this.getResourceUri( 'src/media/viewer.js',webview);
 
         return /* html */`
             <!DOCTYPE html>
@@ -220,10 +192,11 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
                     }
                 }
                 </script>
-                ${this.getModuleScripts(nonce,webview)}
+                <script nonce="${nonce}" type="module" src="${viewerUri}"></script>
             </body>
             </html>`;
     }
+    // ${this.getModuleScripts(nonce,webview)}
     // ${this.getScripts(nonce,webview)}
     // "GLTFLoader": "${GLTFLoaderUri}",
     //                     "OrbitControls": "${OrbitControlsUri}",
