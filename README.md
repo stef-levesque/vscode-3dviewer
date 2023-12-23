@@ -37,20 +37,22 @@ Use the [THREE.js editor](https://threejs.org/editor/) directly inside VSCode
 
 ## Commands
 
-* From the context menu supported file in the explorer
-  * `Open in Editor`
-  * `Open in Viewer`
+* From the 'Open With' context menu option in the explorer
+  * `3D Mesh Viewer`
+  * `3D Mesh Editor`
 * From the command palette
-  * `Open THREE.js Editor`
-  * `Open URL in Viewer`
+  * `3D Mesh Viewer: Open file in the viewer`
+  * `3D Mesh Viewer: Open file in the editor`
 
 ## Configuration
 
 |Name                             |Type      |Description
 |---------------------------------|----------|------------
 |`3dviewer.wireframe`             |`boolean` |Display mesh in wireframe mode
-|`3dviewer.background`            |`string`  |Set the default background color (e.g. '#8f8f8f')
+|`3dviewer.backgroundColor`       |`string`  |Set the default background color (e.g. '#8f8f8f')
+|`3dviewer.backgroundImage`       |`string`  |Set the default background image
 |`3dviewer.boundingBox`           |`boolean` |Display a bounding box around the model
+|`3dviewer.axes`                  |`boolean` |Display a bounding box around the model
 |`3dviewer.grid`                  |`boolean` |Display a grid at the origin
 |`3dviewer.gridSize`              |`number`  |Set the size of the grid
 |`3dviewer.near`                  |`number`  |Set the near plane distance
@@ -69,7 +71,8 @@ Use the [THREE.js editor](https://threejs.org/editor/) directly inside VSCode
 
 ## Requirements
 
-Visual Studio Code v1.49.0
+- Visual Studio Code v1.49.0
+- WebGL-compatible platform
 
 ## Credits
 
@@ -80,3 +83,10 @@ Visual Studio Code v1.49.0
 ## License
 
 [MIT](LICENSE.md)
+
+## Build local package
+`npm install -g @vscode/vsce`
+
+`$ vsce package`
+
+`# myExtension.vsix generated`

@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getNonce, WebviewCollection, MeshDocument, disposeAll } from './util';
+import { getNonce, WebviewCollection, MeshDocument, disposeAll, escapeAttribute } from './util';
+import * as fs from 'fs';
 
 /**
  * Provider for Mesh viewers.
@@ -21,7 +22,7 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
             });
     }
 
-    private static readonly viewType = '3dviewer.viewer';
+    public static readonly viewType = '3dviewer.viewer';
 
     /**
      * Tracks all known webviews
@@ -87,9 +88,19 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
 
     //#endregion
 
-    private getMediaPath(scheme: string, mediaFile: string): vscode.Uri {
-        return vscode.Uri.file(path.join(this._context.extensionPath, 'media', mediaFile))
-            .with({ scheme: scheme });
+    private getJSPath(file: string, webview:vscode.Webview) {
+        const diskPath = vscode.Uri.file(path.join(this._context.extensionPath, 'node_modules', file))
+        return webview.asWebviewUri(diskPath);                
+    }
+
+    private getMediaPath(relativePath: string, webview:vscode.Webview): vscode.Uri {
+        const diskPath = vscode.Uri.file(path.join(this._context.extensionPath,'media', relativePath));
+        return webview.asWebviewUri(diskPath);
+    }
+
+    private getResourceUri(relativePath: string, webview:vscode.Webview): vscode.Uri {
+        const diskPath = vscode.Uri.file(path.join(this._context.extensionPath, relativePath));
+        return webview.asWebviewUri(diskPath);
     }
 
     private getSettings(uri: vscode.Uri): string {
@@ -97,39 +108,33 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
         const initialData = {
             fileToLoad: uri.toString(),
             wireframe: config.get('wireframe', false),
-            background: config.get('background', '#8f8f8f'),
+            backgroundColor: config.get('backgroundColor', '#8f8f8f'),
+            backgroundImage: config.get('backgroundImage', 'Bridge2'),
             useEnvCube: config.get('useEnvCube', true),
             boundingBox: config.get('boundingBox', false),
+            axes: config.get('axes', false),
             grid: config.get('grid', true),
             gridSize: config.get('gridSize', 32),
             near: config.get('near', 0.01),
             far: config.get('far', 1000000),
             limitFps: config.get('limitFps', 0),
+            edges: config.get('edges', false),
             hotReloadAutomatically: config.get('hotReloadAutomatically', false)
         }
         return `<meta id="vscode-3dviewer-data" data-settings="${JSON.stringify(initialData).replace(/"/g, '&quot;')}">`
     }
-
-    private getScripts(scheme: string, nonce: string): string {
+    
+    private getModuleScripts( nonce: string, webview:vscode.Webview): string {
         const scripts = [
-            this.getMediaPath(scheme, 'build/three.js'),
-            this.getMediaPath(scheme, 'examples/js/libs/inflate.min.js'),
-            this.getMediaPath(scheme, 'examples/js/libs/dat.gui.min.js'),
-            this.getMediaPath(scheme, 'examples/js/controls/OrbitControls.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/LoaderSupport.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/ColladaLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/FBXLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/TDSLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/OBJLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/STLLoader.js'),
-            this.getMediaPath(scheme, 'examples/js/loaders/PLYLoader.js'),
-            this.getMediaPath(scheme, 'viewer.js')
+
+            this.getMediaPath( 'viewer.js',webview)
         ];
         return scripts
-            .map(source => `<script nonce="${nonce}" src="${source}"></script>`)
+            .map(source => `<script type="module" nonce="${nonce}" src="${source}"></script>`)
             .join('\n');
     }
 
+    
     /**
      * Get the static HTML used for in our editor's webviews.
      */
@@ -139,18 +144,22 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
             document.uri;
 
         // Local path to script and css for the webview
-        const scriptUri = webview.asWebviewUri(vscode.Uri.file(
-            path.join(this._context.extensionPath, 'media', 'viewer.js')
-        ));
-        const styleUri = webview.asWebviewUri(vscode.Uri.file(
-            path.join(this._context.extensionPath, 'media', 'viewer.css')
-        ));
-        const mediaUri = webview.asWebviewUri(vscode.Uri.file(
-            path.join(this._context.extensionPath, 'media')
-        ));
+        // const styleUri = webview.asWebviewUri(vscode.Uri.file(
+        //     path.join(this._context.extensionPath, 'media', 'viewer.css')
+        // ));
+        // const mediaUri = webview.asWebviewUri(vscode.Uri.file(
+        //     path.join(this._context.extensionPath, 'media')
+        // ));
 
         // Use a nonce to whitelist which scripts can be run
         const nonce = getNonce();
+
+        const threeUri      = this.getResourceUri( 'node_modules/three/build/three.module.js',webview);
+        const threeAddonsUri= this.getResourceUri( 'node_modules/three/examples/jsm/',webview);
+        const lilguiUri     = this.getResourceUri( 'node_modules/lil-gui/dist/lil-gui.esm.min.js',webview);
+        const styleUri      = this.getResourceUri( 'out/media/resources/viewer.css',webview);
+        const mediaUri      = this.getResourceUri( 'out/media/resources',webview);
+        const viewerUri = this.getResourceUri('out/media/viewer.js', webview);
 
         return /* html */`
             <!DOCTYPE html>
@@ -162,7 +171,7 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
                 Use a content security policy to only allow loading images from https or from our extension directory,
                 and only allow scripts that have a specific nonce.
                 -->
-                <meta http-equiv="Content-Security-Policy" content="default-src ${webview.cspSource} 'self' 'unsafe-eval' blob: data:; img-src ${webview.cspSource} 'self' 'unsafe-eval' blob: data:; style-src ${webview.cspSource} 'unsafe-inline'; script-src ${webview.cspSource} 'self' 'unsafe-eval' blob: data:;">
+                <meta http-equiv="Content-Security-Policy" content="default-src ${webview.cspSource} 'self' 'unsafe-eval' blob: data:; img-src ${webview.cspSource} 'self' 'unsafe-eval' blob: data:; style-src ${webview.cspSource} 'unsafe-inline'; script-src ${webview.cspSource} 'self' 'unsafe-eval' blob: data: 'nonce-${nonce}';">
 
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -175,7 +184,16 @@ export class MeshViewerProvider implements vscode.CustomReadonlyEditorProvider<M
                 <title>3D Mesh Viewer</title>
             </head>
             <body>
-                ${this.getScripts('vscode-resource', nonce)}
+                <script nonce="${nonce}" type="importmap">
+                {
+                    "imports": {
+                        "three": "${threeUri}",
+                        "three/addons/": "${threeAddonsUri}",
+                        "lil-gui": "${lilguiUri}"
+                    }
+                }
+                </script>
+                <script nonce="${nonce}" type="module" src="${viewerUri}"></script>
             </body>
             </html>`;
     }

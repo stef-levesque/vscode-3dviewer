@@ -2,8 +2,8 @@
     "name": "vscode-3dviewer",
     "displayName": "3D Viewer for VSCode",
     "description": "Preview 3D models in VSCode",
-    "version": "0.2.2",
-    "publisher": "slevesque",
+    "version": "0.2.4",
+    "publisher": "ivanCobotic",
     "license": "LICENSE.md",
     "icon": "icon.png",
     "bugs": {
@@ -19,12 +19,13 @@
         "theme": "dark"
     },
     "engines": {
-        "vscode": "^1.49.0"
+        "vscode": "^1.85.0"
     },
     "keywords": [
         "vscode",
         "3d",
         "mesh",
+        "model",
         "viewer",
         "webgl",
         "3ds",
@@ -34,14 +35,15 @@
         "obj",
         "stl"
     ],
+    "capabilities": {
+        "untrustedWorkspaces": {
+            "supported": false
+        }
+    },
     "categories": [
         "Other"
     ],
-    "activationEvents": [
-        "onCustomEditor:3dviewer.viewer",
-        "onCustomEditor:3dviewer.editor"
-    ],
-    "main": "./out/extension",
+    "activationEvents": [],
     "contributes": {
         "customEditors": [
             {
@@ -61,28 +63,10 @@
                         "filenamePattern": "*.obj"
                     },
                     {
-                        "filenamePattern": "*.stl"
+                        "filenamePattern": "*.gltf"
                     },
                     {
-                        "filenamePattern": "*.ply"
-                    }
-                ]
-            },
-            {
-                "viewType": "3dviewer.editor",
-                "displayName": "3D Mesh Editor",
-                "selector": [
-                    {
-                        "filenamePattern": "*.3ds"
-                    },
-                    {
-                        "filenamePattern": "*.dae"
-                    },
-                    {
-                        "filenamePattern": "*.fbx"
-                    },
-                    {
-                        "filenamePattern": "*.obj"
+                        "filenamePattern": "*.glb"
                     },
                     {
                         "filenamePattern": "*.stl"
@@ -101,14 +85,35 @@
                     "description": "Display mesh in wireframe mode",
                     "default": false
                 },
-                "3dviewer.background": {
+                "3dviewer.backgroundImage": {
                     "type": "string",
-                    "description": "Default color for the background",
+                    "description": "Default image for the background. When set to 'none' the backgroundColor gets used.",
+                    "default": "Bridge2",
+                    "enum": [
+                        "none",
+                        "Bridge2",
+                        "MilkyWay",
+                        "Pisa"
+                    ]
+                },
+                "3dviewer.backgroundColor": {
+                    "type": "string",
+                    "description": "Default color for the background. Only used when backgroundImage is set to 'none'",
                     "default": "#8f8f8f"
                 },
                 "3dviewer.boundingBox": {
                     "type": "boolean",
                     "description": "Display a bounding box around the model",
+                    "default": false
+                },
+                "3dviewer.axes": {
+                    "type": "boolean",
+                    "description": "Display model axes",
+                    "default": false
+                },
+                "3dviewer.edges": {
+                    "type": "boolean",
+                    "description": "Display model edges",
                     "default": false
                 },
                 "3dviewer.grid": {
@@ -147,21 +152,35 @@
                     "default": false
                 }
             }
-        }
+        },
+        "commands": [
+            {
+                "command": "3dviewer.openIn3dViewer",
+                "title": "3D Viewer: Open file in the model viewer"
+            }
+        ]
     },
+    "main": "./out/extension.js",
     "scripts": {
-        "vscode:prepublish": "npm run compile",
-        "compile": "tsc -p ./",
-        "lint": "tslint -p ./",
-        "watch": "tsc -w -p ./"
+        "vscode:prepublish": "npm run esbuild-base -- --minify && npm run esbuild-viewer -- --minify && cp -rf ./src/media/resources ./out/media/resources",
+        "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+        "esbuild-viewer": "esbuild ./src/media/viewer.js --bundle --outfile=out/media/viewer.js --external:vscode --format=esm --platform=node",
+        "esbuild": "npm run esbuild-base -- --sourcemap && npm run esbuild-viewer -- --sourcemap=inline && cp -rf ./src/media/resources ./out/media/resources",
+        "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch && npm run esbuild-viewer -- --sourcemap --watch",
+        "test-compile": "tsc -p ./",
+        "lint": "tslint -p ./"
+    },
+    "dependencies": {
+        "lil-gui": "^0.19.1",
+        "three": "^0.159.0"
     },
     "devDependencies": {
-        "@types/dat-gui": "^0.6.3",
-        "@types/mocha": "^2.2.42",
-        "@types/node": "^12.12.0",
-        "@types/three": "^0.84.30",
-        "@types/vscode": "^1.45.1",
-        "@types/webgl-ext": "0.0.31",
-        "typescript": "^3.8.3"
+        "@types/node": "^20.10.5",
+        "@types/vscode": "^1.85.0",
+        "@typescript-eslint/eslint-plugin": "^6.15.0",
+        "@typescript-eslint/parser": "^6.15.0",
+        "esbuild": "^0.19.10",
+        "eslint": "^8.56.0",
+        "typescript": "^5.3.3"
     }
 }

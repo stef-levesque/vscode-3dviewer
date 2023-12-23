@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 export function getNonce() {
     let text = '';
@@ -98,3 +99,8 @@ export class MeshDocument implements vscode.CustomDocument {
         return value;
     }
 }
+
+export function escapeAttribute(value: string | vscode.Uri): string {
+    return value.toString().replace(/"/g, "&quot;");
+  }
+  
